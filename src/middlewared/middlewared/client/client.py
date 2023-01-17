@@ -3,7 +3,6 @@ import errno
 import logging
 import os
 import pickle
-import platform
 import pprint
 import random
 import socket
@@ -19,10 +18,12 @@ try:
 except ImportError:
     from collections import Callable
 
-from ws4py.client.threadedclient import WebSocketClient
+from websocket import WebSocketApp
+from websocket._abnf import STATUS_NORMAL
+from websocket._http import connect, proxy_info
+from websocket._socket import sock_opt
 
 from . import ejson as json
-from .protocol import DDPProtocol
 from .utils import MIDDLEWARE_RUN_DIR, ProgressBar, undefined
 try:
     from libzfs import Error as ZFSError
@@ -66,123 +67,103 @@ class ReserveFDException(Exception):
     pass
 
 
-class WSClient(WebSocketClient):
-    def __init__(self, url, *args, **kwargs):
-        self.client = kwargs.pop('client')
-        self.reserved_ports = kwargs.pop('reserved_ports', False)
-        self.protocol = DDPProtocol(self)
-        super(WSClient, self).__init__(url, *args, **kwargs)
+class WSClient:
+    def __init__(self, url, *, client, reserved_ports=False):
+        self.url = url
+        self.client = client
+        self.reserved_ports = reserved_ports
 
-    def get_reserved_port(self):
+        self.socket = None
+        self.app = None
 
-        # platform module is used because middlewared.utils.osc
-        # module causes a cyclical import issue with ErrnoMixin.
-        if platform.system().lower() == 'freebsd':
-
-            # defined in net/in.h
-            IP_PORTRANGE = 19
-            IP_PORTRANGE_LOW = 2
-
-            n_retries = 5
-            for retry in range(n_retries):
-                self.sock.setsockopt(socket.IPPROTO_IP, IP_PORTRANGE, IP_PORTRANGE_LOW)
-
-                try:
-                    self.sock.bind(('', 0))
-                    return
-                except OSError:
-                    time.sleep(0.1)
-                    continue
-
+    def connect(self):
+        unix_socket_prefix = "ws+unix://"
+        if self.url.startswith(unix_socket_prefix):
+            self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.socket.connect(self.url.removeprefix(unix_socket_prefix))
+            app_url = "ws://localhost/websocket"  # Adviced by official docs to use dummy hostname
         else:
+            sockopt = sock_opt(None, None)
+            sockopt.timeout = 10
+            self.socket = connect(self.url, sockopt, proxy_info(), None)
+            if self.reserved_ports:
+                self._bind_to_reserved_port()
+            app_url = self.url
 
-            # linux doesn't have a mechanism to allow the kernel to dynamically
-            # assign ports in the "privileged" range (i.e. 600 - 1024) so we
-            # loop through and call bind() on a privileged port explicitly since
-            # middlewared runs as root.
+        self.app = WebSocketApp(
+            app_url,
+            socket=self.socket,
+            on_open=self._on_open,
+            on_message=self._on_message,
+            on_error=self._on_error,
+            on_close=self._on_close,
+        )
+        Thread(daemon=True, target=self.app.run_forever).start()
 
-            # generate 5 random numbers in the `port_low`, `port_high` range
-            # so that we guarantee we use a different port from the last
-            # iteration in the for loop
-            port_low = 600
-            port_high = 1024
+    def send(self, data):
+        return self.app.send(data)
 
-            ports_to_try = random.sample(range(port_low, port_high), 5)
+    def close(self):
+        self.app.close()
+        self.client.on_close(STATUS_NORMAL)
 
-            for port in ports_to_try:
-                try:
-                    self.sock.bind(('', port))
-                    return
-                except OSError:
-                    time.sleep(0.1)
-                    continue
+    def _bind_to_reserved_port(self):
+        # linux doesn't have a mechanism to allow the kernel to dynamically
+        # assign ports in the "privileged" range (i.e. 600 - 1024) so we
+        # loop through and call bind() on a privileged port explicitly since
+        # middlewared runs as root.
+
+        # generate 5 random numbers in the `port_low`, `port_high` range
+        # so that we guarantee we use a different port from the last
+        # iteration in the for loop
+        port_low = 600
+        port_high = 1024
+
+        ports_to_try = random.sample(range(port_low, port_high), 5)
+
+        for port in ports_to_try:
+            try:
+                self.socket.bind(('', port))
+                return
+            except OSError:
+                time.sleep(0.1)
+                continue
 
         raise ReserveFDException()
 
-    def connect(self):
-        if self.reserved_ports:
-            self.get_reserved_port()
+    def _on_open(self, app):
+        # TCP keepalive settings don't apply to local unix sockets
+        if 'ws+unix' not in self.url:
+            # enable keepalives on the socket
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
-        # block for a max of 10 seconds trying to connect to the socket
-        # raising a timeout error if it's exceeded
-        self.sock.settimeout(10)
+            # If the other node panics then the socket will
+            # remain open and we'll have to wait until the
+            # TCP timeout value expires (60 seconds default).
+            # To account for this:
+            #   1. if the socket is idle for 1 seconds
+            #   2. send a keepalive packet every 1 second
+            #   3. for a maximum up to 5 times
+            #
+            # after 5 times (5 seconds of no response), the socket will be closed
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
 
-        max_attempts = 3
-        for i in range(max_attempts):
-            try:
-                rv = super(WSClient, self).connect()
-            except OSError as e:
-                # Lets retry a few times in case the error is
-                # [Errno 48] Address already in use
-                # which I believe may be caused by a race condition
-                if e.errno == errno.EADDRINUSE and i < max_attempts - 1:
-                    continue
-                raise
-            else:
-                break
+        # if we're able to connect put socket in blocking mode
+        # until all operations complete or error is raised
+        self.socket.settimeout(None)
 
-        if self.sock:
-
-            # TCP keepalive settings don't apply to local unix sockets
-            if 'ws+unix' not in self.url:
-                # enable keepalives on the socket
-                self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-
-                # If the other node panics then the socket will
-                # remain open and we'll have to wait until the
-                # TCP timeout value expires (60 seconds default).
-                # To account for this:
-                #   1. if the socket is idle for 1 seconds
-                #   2. send a keepalive packet every 1 second
-                #   3. for a maximum up to 5 times
-                #
-                # after 5 times (5 seconds of no response), the socket will be closed
-                self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
-                self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
-                self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
-
-            # if we're able to connect put socket in blocking mode
-            # until all operations complete or error is raised
-            self.sock.settimeout(None)
-
-        return rv
-
-    def opened(self):
-        self.protocol.on_open()
-
-    def closed(self, code, reason=None):
-        self.protocol.on_close(code, reason)
-
-    def received_message(self, message):
-        self.protocol.on_message(message.data.decode('utf8'))
-
-    def on_open(self):
         self.client.on_open()
 
-    def on_message(self, message):
-        self.client._recv(message)
+    def _on_message(self, app, data):
+        self.client._recv(json.loads(data))
 
-    def on_close(self, code, reason=None):
+    def _on_error(self, app, e):
+        print('ERROR', e)
+        #raise e
+
+    def _on_close(self, app, code, reason):
         self.client.on_close(code, reason)
 
 
@@ -325,8 +306,6 @@ class Client:
             client=self,
             reserved_ports=reserved_ports,
         )
-        if 'unix://' in uri:
-            self._ws.resource = '/websocket'
         self._ws.connect()
         self._connected.wait(10)
         if not self._connected.is_set():
