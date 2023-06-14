@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
+import time
 
 import pytest
-import sys
-import os
-import time
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import (
     GET,
     PUT,
@@ -16,14 +12,12 @@ from functions import (
     cmd_test,
     wait_on_job
 )
+from middlewared.test.integration.assets.privilege import privilege
+from middlewared.test.integration.utils import call, client
 from assets.REST.directory_services import ldap
 from auto_config import pool_name, ip, user, password, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
-
-from middlewared.test.integration.assets.privilege import privilege
-from middlewared.test.integration.utils import call, client
-
 try:
     from config import (
         LDAPBASEDN,
@@ -34,8 +28,7 @@ try:
         LDAPPASSWORD
     )
 except ImportError:
-    Reason = 'LDAP* variable are not setup in config.py'
-    pytestmark = pytest.mark.skipif(True, reason=Reason)
+    pytestmark = pytest.mark.skip(reason='LDAP* variable are not setup in config.py')
 
 dataset = f"{pool_name}/ldap-test"
 dataset_url = dataset.replace('/', '%2F')

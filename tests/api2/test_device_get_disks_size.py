@@ -1,8 +1,3 @@
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-
 import pytest
 
 from middlewared.test.integration.utils import call, ssh

@@ -1,8 +1,5 @@
-import sys
 import time
 import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 
 import pytest
 

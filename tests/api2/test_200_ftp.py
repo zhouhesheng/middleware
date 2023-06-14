@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-# Location for tests into REST API 2.0 of FreeNAS
-
-import pytest
-import sys
 import os
 import json
 import contextlib
@@ -13,12 +5,12 @@ import copy
 import subprocess
 from time import sleep
 from timeit import default_timer as timer
-from pytest_dependency import depends
 from ftplib import all_errors
 from types import SimpleNamespace
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+import pytest
+from pytest_dependency import depends
+
 from assets.REST.pool import dataset as ftp_dataset
 from functions import SSH_TEST
 from functions import make_ws_request, send_file
@@ -27,7 +19,6 @@ from auto_config import dev_test, password, user
 from protocols import ftp_connect, ftp_connection
 from protocols import ftps_connection
 from middlewared.test.integration.assets.account import user as ftp_user
-
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

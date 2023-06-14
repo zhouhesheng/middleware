@@ -4,9 +4,6 @@ import json
 import pytest
 import requests
 
-import os
-import sys
-sys.path.append(os.getcwd())
 from functions import GET
 from auto_config import ip
 

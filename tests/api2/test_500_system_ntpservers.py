@@ -1,22 +1,15 @@
-#!/usr/bin/env python3
-# License: BSD
-
-import os
-import sys
 import time
 
 import pytest
 from pytest_dependency import depends
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import badNtpServer, dev_test, ip, password, user
 from functions import DELETE, GET, POST, PUT, SSH_TEST
+from middlewared.test.integration.utils import call
 
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 CONFIG_FILE = '/etc/chrony/chrony.conf'
-from middlewared.test.integration.utils import call
 
 
 class TestBadNtpServer:

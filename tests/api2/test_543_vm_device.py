@@ -1,14 +1,6 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-
 import pytest
-import sys
-import os
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET, POST, PUT, DELETE
 from auto_config import dev_test, ha, pool_name, ip
 from middlewared.test.integration.assets.pool import dataset

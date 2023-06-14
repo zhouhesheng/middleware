@@ -1,13 +1,8 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-
 import pytest
 from pytest_dependency import depends
+
 from functions import SSH_TEST
 from auto_config import hostname, ip
-
 from assets.REST.directory_services import active_directory, ldap, override_nameservers
 from middlewared.test.integration.utils import call
 

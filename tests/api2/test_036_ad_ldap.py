@@ -1,19 +1,14 @@
-#!/usr/bin/env python3
+import json
+from contextlib import contextmanager
 
 import pytest
-import sys
-import os
-import json
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+from pytest_dependency import depends
 
 from assets.REST.directory_services import active_directory, ldap, override_nameservers
 from assets.REST.pool import dataset
-from auto_config import ip, hostname, password, pool_name, user, ha
-from contextlib import contextmanager
+from auto_config import dev_test, ip, hostname, password, pool_name, user, ha
 from functions import GET, POST, PUT, SSH_TEST, make_ws_request, wait_on_job
 from protocols import nfs_share, SSH_NFS
-from pytest_dependency import depends
 from middlewared.test.integration.utils import call
 
 try:
@@ -22,7 +17,6 @@ except ImportError:
     Reason = 'ADNameServer AD_DOMAIN, ADPASSWORD, or/and ADUSERNAME are missing in config.py"'
     pytestmark = pytest.mark.skip(reason=Reason)
 else:
-    from auto_config import dev_test
     # comment pytestmark for development testing with --dev-test
     pytestmark = pytest.mark.skipif(dev_test, reason='Skip for testing')
 

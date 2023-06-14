@@ -1,9 +1,7 @@
 import os
-import sys
 import time
-sys.path.append(os.getcwd())
-from auto_config import ha
 
+from auto_config import ha
 from middlewared.test.integration.utils import client
 
 # Only read the test on HA

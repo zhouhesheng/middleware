@@ -1,4 +1,3 @@
-# -*- coding=utf-8 -*-
 import contextlib
 import io
 import json
@@ -9,11 +8,7 @@ import requests
 from middlewared.test.integration.assets.account import unprivileged_user as unprivileged_user_template
 from middlewared.test.integration.assets.api_key import api_key
 from middlewared.test.integration.utils import client
-
-import os
-import sys
-sys.path.append(os.getcwd())
-from functions import POST, GET, DELETE, SSH_TEST
+from functions import GET
 from auto_config import password, ip
 
 

@@ -1,29 +1,18 @@
-#!/usr/bin/env python3
-
-import urllib.parse
 import contextlib
-import pytest
-import sys
-import os
 import subprocess
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-from functions import POST, GET, DELETE, SSH_TEST, wait_on_job
-from auto_config import (
-    ip,
-    dev_test,
-    pool_name,
-    password,
-    user,
-)
-from protocols import SMB
-from pytest_dependency import depends
 from time import sleep
+import urllib.parse
+
+import pytest
+from pytest_dependency import depends
+
+from functions import POST, GET, DELETE, SSH_TEST, wait_on_job
+from auto_config import ip, dev_test, pool_name, password, user
+from protocols import SMB
 from utils import create_dataset
 
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 SMB_USER = "smbacluser"
 SMB_PWD = "smb1234"

@@ -5,15 +5,9 @@ import pytest
 from middlewared.service_exception import CallError
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call
-
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import dev_test
-reason = 'Skip for testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skip for testing')
 
 
 def common_min_max_txg_snapshot_test(test_min_txg=False, test_max_txg=False):

@@ -1,14 +1,8 @@
-#!/usr/bin/env python3
 import pytest
 from pytest_dependency import depends
 
 from middlewared.client import ClientException
 from middlewared.test.integration.utils import call, mock
-
-import os
-import sys
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from functions import PUT
 from auto_config import pool_name, ha, dev_test
 # comment pytestmark for development testing with --dev-test

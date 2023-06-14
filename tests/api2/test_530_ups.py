@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# License: BSD
-
 import pytest
-import os
-import sys
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET, PUT, POST
 from auto_config import dev_test
 # comment pytestmark for development testing with --dev-test

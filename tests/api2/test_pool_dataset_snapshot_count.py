@@ -4,10 +4,6 @@ import pytest
 
 from middlewared.test.integration.utils import call, mock
 from middlewared.test.integration.assets.pool import dataset
-
-import os
-import sys
-sys.path.append(os.getcwd())
 from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

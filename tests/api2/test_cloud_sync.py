@@ -1,22 +1,18 @@
+import os
 import re
 import time
 
 import pytest
 from pytest_dependency import depends
+
 from middlewared.test.integration.assets.cloud_sync import credential, task, local_ftp_credential
 from middlewared.test.integration.assets.cloud_sync import local_ftp_task, run_task
 from middlewared.test.integration.assets.ftp import anonymous_ftp_server, ftp_server_with_user_account
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call, pool, ssh
-
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import dev_test, ha
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 def test_include(request):

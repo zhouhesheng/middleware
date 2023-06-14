@@ -2,23 +2,18 @@ import time
 
 import pytest
 from pytest_dependency import depends
+
+from auto_config import dev_test
 from middlewared.test.integration.assets.cloud_sync import credential, task
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call
 from middlewared.test.integration.utils.mock_rclone import mock_rclone
 
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-from auto_config import dev_test
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 def test_rclone_config_writer_bool(request):
-    #
     with dataset("test") as ds:
         with credential({
             "name": "Google Cloud Storage",

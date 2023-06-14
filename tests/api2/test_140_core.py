@@ -1,14 +1,8 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-
-import pytest
-import sys
 import os
 from urllib.request import urlretrieve
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
+import pytest
+
 from functions import GET, POST
 from auto_config import ip, dev_test
 # comment pytestmark for development testing with --dev-test

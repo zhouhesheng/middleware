@@ -1,17 +1,11 @@
-#!/usr/bin/env python3
-
 import pytest
-import sys
-import os
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import POST, GET, PUT, DELETE
 from auto_config import pool_name, dev_test
 
-reason = 'Skipping for test development testing' if dev_test else 'Skipping test for Core and Enterprise'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason='dev-test')
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 @pytest.mark.dependency(name="ACLTEMPLATE_DATASETS_CREATED")

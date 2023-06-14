@@ -1,18 +1,11 @@
-#!/usr/bin/env python3
-# License: BSD
-
-import os
-import pytest
-import sys
 from time import sleep
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
+import pytest
+
 from functions import DELETE, POST, PUT, GET
 from auto_config import interface, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
-
-Reason = "VM detected no real ATA disk"
 
 not_real = (
     interface == "vtnet0"

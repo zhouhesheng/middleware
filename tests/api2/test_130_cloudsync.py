@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-
-import pytest
-import sys
 import os
 import time
 import urllib.parse
+
+import pytest
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import PUT, POST, GET, DELETE, SSH_TEST
 from auto_config import pool_name, ip, password, user, dev_test
 

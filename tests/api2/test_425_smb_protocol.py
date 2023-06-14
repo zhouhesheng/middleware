@@ -1,30 +1,19 @@
-#!/usr/bin/env python3
-
-import pytest
-import sys
 import os
 import enum
 from time import sleep
 from base64 import b64decode, b64encode
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
+import pytest
+from pytest_dependency import depends
+
+from auto_config import ip, pool_name, dev_test, user, password
 from assets.REST.pool import dataset as create_dataset
 from functions import PUT, POST, GET, DELETE, SSH_TEST
-from auto_config import (
-    ip,
-    pool_name,
-    dev_test,
-    user,
-    password,
-)
-from pytest_dependency import depends
 from protocols import SMB, smb_connection, smb_share
 from samba import ntstatus
 from samba import NTSTATUSError
-
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 dataset = f"{pool_name}/smb-proto"

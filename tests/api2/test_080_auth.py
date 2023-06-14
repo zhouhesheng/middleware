@@ -1,14 +1,6 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-
 import pytest
-import sys
-import os
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import POST, SSH_TEST
 from auto_config import password, user, ip, dev_test
 

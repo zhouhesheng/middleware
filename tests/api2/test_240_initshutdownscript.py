@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# License: BSD
-
-import sys
-import os
 import pytest
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import POST, PUT, SSH_TEST, GET, DELETE
 from auto_config import user, password, ip, dev_test
 # comment pytestmark for development testing with --dev-test

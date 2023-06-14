@@ -1,14 +1,9 @@
-#!/usr/bin/env python3
-
-# License: BSD
-
 import contextlib
 import enum
 import os
 import random
 import socket
 import string
-import sys
 from time import sleep
 
 import iscsi
@@ -17,14 +12,9 @@ import pytest
 from pyscsi.pyscsi.scsi_sense import sense_ascq_dict
 from pytest_dependency import depends
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-
 from auto_config import dev_test, ha, hostname, isns_ip, pool_name
 from functions import DELETE, GET, POST, PUT
-from protocols import (initiator_name_supported, iscsi_scsi_connection,
-                       isns_connection)
-
+from protocols import initiator_name_supported, iscsi_scsi_connection, isns_connection
 from assets.REST.pool import dataset
 from assets.REST.snapshot import snapshot, snapshot_rollback
 

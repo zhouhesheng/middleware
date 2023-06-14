@@ -1,26 +1,17 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-# Location for tests into REST API of FreeNAS
-
-import pytest
-import sys
-import os
 import json
 import time
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-from assets.REST.directory_services import active_directory
-from assets.REST.pool import dataset
-from functions import make_ws_request
-from functions import PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
-from auto_config import pool_name, ip, hostname, password, user
 from calendar import timegm
 from contextlib import contextmanager
 from base64 import b64decode
-from protocols import nfs_share
+
+import pytest
 from pytest_dependency import depends
+
+from assets.REST.directory_services import active_directory
+from assets.REST.pool import dataset
+from functions import make_ws_request, PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
+from auto_config import pool_name, ip, hostname, password, user
+from protocols import nfs_share
 
 try:
     from config import AD_DOMAIN, ADPASSWORD, ADUSERNAME, ADNameServer

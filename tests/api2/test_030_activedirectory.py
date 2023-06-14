@@ -1,20 +1,16 @@
-#!/usr/bin/env python3
-
 import os
 import ipaddress
 import json
-import sys
+from time import sleep
+
 import pytest
 from pytest_dependency import depends
-from time import sleep
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from assets.REST.directory_services import active_directory, override_nameservers
 from assets.REST.pool import dataset
 from auto_config import pool_name, ip, user, password, ha
 from functions import GET, POST, PUT, DELETE, SSH_TEST, cmd_test, make_ws_request, wait_on_job
 from protocols import smb_connection, smb_share
-
 from middlewared.test.integration.assets.privilege import privilege
 from middlewared.test.integration.utils import call, client
 

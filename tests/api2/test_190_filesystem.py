@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
+import os
+from copy import deepcopy
 
 import pytest
-import sys
-import os
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 
-from copy import deepcopy
 from functions import POST, PUT, SSH_TEST, wait_on_job
 from auto_config import dev_test, pool_name, ip, user, password
 from middlewared.test.integration.assets.filesystem import directory

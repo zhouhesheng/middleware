@@ -1,26 +1,17 @@
-#!/usr/bin/env python3
-
-# License: BSD
-
 import pytest
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+from pytest_dependency import depends
+
 from functions import PUT, POST, GET, SSH_TEST, wait_on_job
 from assets.REST.directory_services import active_directory, override_nameservers
-from auto_config import ip, hostname, password, user
-from pytest_dependency import depends
+from auto_config import dev_test, ip, hostname, password, user
+# comment pytestmark for development testing with --dev-test
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 try:
     from config import AD_DOMAIN, ADPASSWORD, ADUSERNAME, ADNameServer
 except ImportError:
     Reason = 'ADNameServer AD_DOMAIN, ADPASSWORD, or/and ADUSERNAME are missing in config.py"'
     pytestmark = pytest.mark.skip(reason=Reason)
-else:
-    from auto_config import dev_test
-    # comment pytestmark for development testing with --dev-test
-    pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 WINBIND_SEPARATOR = "\\"
 

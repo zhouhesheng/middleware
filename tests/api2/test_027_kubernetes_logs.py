@@ -1,14 +1,9 @@
-#!/usr/bin/env python3
-
 import contextlib
-import os
 from time import sleep
-import pytest
-import sys
 
+import pytest
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from middlewared.test.integration.utils import call, ssh
 from auto_config import ip
 

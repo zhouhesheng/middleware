@@ -1,20 +1,12 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-# Location for tests into REST API of FreeNAS
-
-import pytest
-import sys
 import json
 import os
 import time
 import stat
-
 from contextlib import contextmanager
+
+import pytest
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from assets.REST.pool import dataset as tmp_dataset
 from functions import POST, GET, DELETE, PUT, SSH_TEST, wait_on_job
 from auto_config import pool_name, ha, password, user, ip

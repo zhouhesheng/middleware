@@ -1,17 +1,12 @@
+import contextlib
 import ipaddress
-import os
-import pytest
 import socket
-import sys
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+import pytest
 
 from middlewared.test.integration.assets.iscsi import target_login_test
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call, ssh
-
-import contextlib
 from auto_config import ip
 
 

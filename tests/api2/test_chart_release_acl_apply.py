@@ -1,10 +1,7 @@
 import contextlib
 import os
-import sys
 
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 
 from middlewared.test.integration.utils import call, ssh
 from middlewared.test.integration.assets.apps import chart_release

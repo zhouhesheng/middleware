@@ -5,15 +5,9 @@ from middlewared.test.integration.assets.keychain import localhost_ssh_credentia
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.assets.replication import task
 from middlewared.test.integration.utils import call, pool, ssh
-
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import dev_test
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 @pytest.fixture(scope="module")

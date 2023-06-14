@@ -1,8 +1,3 @@
-import os
-import sys
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-
 import contextlib
 import urllib.parse
 

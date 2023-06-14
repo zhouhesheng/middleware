@@ -1,9 +1,9 @@
+from time import sleep
+
 import pytest
 
-from time import sleep
 from middlewared.test.integration.assets.pool import mirror_topology, another_pool_topologies, another_pool
 from middlewared.test.integration.utils import call
-
 from auto_config import dev_test, ha
 pytestmark = [
     pytest.mark.skipif(dev_test, reason='Skipping for test development testing'),

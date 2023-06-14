@@ -1,17 +1,9 @@
-#!/usr/bin/env python3
-
-# License: BSD
-
-import sys
-import os
 import pytest
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from assets.REST.pool import dataset as create_dataset
 from functions import DELETE, GET, POST, PUT, SSH_TEST, wait_on_job, make_ws_request
-from auto_config import ip, pool_name, user, password
-from auto_config import dev_test
+from auto_config import dev_test, ip, pool_name, user, password
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

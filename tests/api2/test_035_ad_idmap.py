@@ -1,22 +1,15 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-# Location for tests into REST API of FreeNAS
-
-import pytest
-import sys
-import os
-import json
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-from functions import PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
-from assets.REST.directory_services import active_directory, override_nameservers
-from auto_config import ip, hostname, password, user
 from base64 import b64decode
-from pytest_dependency import depends
+import json
 from time import sleep
 
+import pytest
+from pytest_dependency import depends
+
+from functions import PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
+from assets.REST.directory_services import active_directory, override_nameservers
+from auto_config import dev_test, ip, hostname, password, user
+# comment pytestmark for development testing with --dev-test
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 try:
     from config import AD_DOMAIN, ADPASSWORD, ADUSERNAME, ADNameServer
     from config import (
@@ -28,10 +21,6 @@ try:
 except ImportError:
     Reason = 'ADNameServer AD_DOMAIN, ADPASSWORD, or/and ADUSERNAME are missing in config.py"'
     pytestmark = pytest.mark.skip(reason=Reason)
-else:
-    from auto_config import dev_test
-    # comment pytestmark for development testing with --dev-test
-    pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 BACKENDS = [
     "AD",

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-
-import os
-import sys
-from pytest_dependency import depends
-
-sys.path.append(os.getcwd())
-
 from middlewared.test.integration.assets.nfs import nfs_share
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call, client

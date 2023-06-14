@@ -1,13 +1,5 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-
 import pytest
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import PUT, GET
 from auto_config import dev_test
 # comment pytestmark for development testing with --dev-test

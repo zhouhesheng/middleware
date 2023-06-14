@@ -1,18 +1,10 @@
-#!/usr/bin/env python3
-import os
-import sys
-
 import pytest
 from pytest_dependency import depends
 
 from middlewared.test.integration.utils import call, ssh
 from middlewared.test.integration.assets.cloud_sync import credential, task, run_task
 from middlewared.test.integration.assets.pool import dataset
-
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import dev_test
-
 try:
     from config import (
         STORJ_IX_AWS_ACCESS_KEY_ID,

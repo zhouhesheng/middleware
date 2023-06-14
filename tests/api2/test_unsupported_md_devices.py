@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-
-import os
 import pytest
-import sys
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import ha
 from middlewared.test.integration.utils import call, ssh
 

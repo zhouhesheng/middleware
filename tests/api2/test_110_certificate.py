@@ -1,19 +1,12 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
+import re
+from time import sleep
 
 import pytest
-import re
-import sys
-import os
 
-from time import sleep
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from functions import GET, DELETE, POST
 from auto_config import dev_test
-
+# comment pytestmark for development testing with --dev-test
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 try:
     from config import (
         LDAPBASEDN,
@@ -21,8 +14,6 @@ try:
         LDAPBINDPASSWORD,
         LDAPHOSTNAME,
     )
-    # comment pytestmark for development testing with --dev-test
-    pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 except ImportError:
     Reason = 'LDAP* variable are not setup in config.py'
     # comment pytestmark for development testing with --dev-test

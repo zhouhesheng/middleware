@@ -1,10 +1,7 @@
 import json
 import os
-import sys
 import tempfile
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from functions import wait_on_job, POST
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call

@@ -1,3 +1,5 @@
+import textwrap
+
 import pytest
 
 from middlewared.client.client import ValidationErrors
@@ -5,16 +7,9 @@ from middlewared.test.integration.assets.crypto import (
     certificate_signing_request, get_cert_params, intermediate_certificate_authority, root_certificate_authority
 )
 from middlewared.test.integration.utils import call
-
-import sys
-import textwrap
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from auto_config import dev_test
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 # We would like to test the following cases

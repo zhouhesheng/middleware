@@ -1,6 +1,5 @@
 import errno
 import json
-import logging
 
 import pytest
 import websocket
@@ -10,8 +9,6 @@ from middlewared.test.integration.assets.account import user, unprivileged_user 
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import call, client, ssh, websocket_url
 from middlewared.test.integration.utils.shell import assert_shell_works
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module")

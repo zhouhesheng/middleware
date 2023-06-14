@@ -1,11 +1,8 @@
 import contextlib
 
-import sys
-import os
-sys.path.append(os.getcwd())
-
 import pytest
 from pytest_dependency import depends
+
 from middlewared.service_exception import ValidationErrors
 from middlewared.test.integration.utils import call
 from middlewared.test.integration.assets.pool import dataset

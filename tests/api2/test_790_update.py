@@ -1,17 +1,10 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
+from time import sleep
 
 import pytest
-import sys
-import os
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET, POST, SSH_TEST, vm_state, vm_start, ping_host
 from auto_config import vm_name, ip, user, password, update
-from time import sleep
 
 url = "https://raw.githubusercontent.com/iXsystems/ixbuild/master/prepnode/"
 

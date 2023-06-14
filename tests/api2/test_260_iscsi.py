@@ -1,30 +1,21 @@
-#!/usr/bin/env python3
-
-# License: BSD
-
-import os
-import pytest
 import random
 import string
-import sys
 from time import sleep
+
+import pytest
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from auto_config import ip, pool_name, hostname, dev_test
 from functions import PUT, POST, GET, SSH_TEST, DELETE
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 try:
-    Reason = 'BSD host configuration is missing in ixautomation.conf'
     from config import BSD_HOST, BSD_USERNAME, BSD_PASSWORD
-    bsd_host_cfg = pytest.mark.skipif(False, reason=Reason)
 except ImportError:
-    bsd_host_cfg = pytest.mark.skipif(True, reason=Reason)
+    pytest.mark.skip(reason='BSD host configuration is missing in ixautomation.conf')
 
 digit = ''.join(random.choices(string.digits, k=2))
-
 file_mountpoint = f'/tmp/iscsi-file-{hostname}'
 zvol_mountpoint = f'/tmp/iscsi-zvol-{hostname}'
 target_name = f"target{digit}"

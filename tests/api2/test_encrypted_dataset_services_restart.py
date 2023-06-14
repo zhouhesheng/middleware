@@ -1,14 +1,7 @@
 import contextlib
 
-import pytest
-from pytest_dependency import depends
 from middlewared.test.integration.utils import call
 from middlewared.test.integration.assets.pool import dataset
-
-import os
-import sys
-sys.path.append(os.getcwd())
-
 
 PASSPHRASE = 'testing123'
 

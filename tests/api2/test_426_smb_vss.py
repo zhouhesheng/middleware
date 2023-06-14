@@ -1,28 +1,16 @@
-#!/usr/bin/env python3
-
-import pytest
-import sys
 import os
 from subprocess import run
 from time import sleep
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-from functions import PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
-from auto_config import (
-    ip,
-    pool_name,
-    dev_test,
-    user,
-    password,
-)
+
+import pytest
 from pytest_dependency import depends
+
+from functions import PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
+from auto_config import ip, pool_name, dev_test, user, password
 from protocols import SMB
 from samba import ntstatus
-
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
-
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 dataset = f"{pool_name}/smb-vss"
 dataset_url = dataset.replace('/', '%2F')

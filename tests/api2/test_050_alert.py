@@ -1,16 +1,11 @@
-#!/usr/bin/env python3
+from time import sleep
 
 import pytest
-import os
-import sys
 from pytest_dependency import depends
-from time import sleep
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET, POST, SSH_TEST
 from auto_config import ip, password, user, pool_name, dev_test
 from middlewared.test.integration.utils import call
-
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

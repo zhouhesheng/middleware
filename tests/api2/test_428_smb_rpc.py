@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
+import os
 
 import pytest
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from auto_config import (ip, dev_test, pool_name)
 from functions import GET, POST
 from middlewared.test.integration.assets.account import user
@@ -12,9 +9,8 @@ from middlewared.test.integration.assets.smb import smb_share
 from middlewared.test.integration.assets.pool import dataset
 from protocols import MS_RPC
 
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 SMB_USER = "smbrpcuser"
 SMB_PWD = "smb1234#!@"

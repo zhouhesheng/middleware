@@ -1,10 +1,6 @@
-
 import pytest
-import sys
-import os
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from assets.REST.pool import dataset
 from middlewared.test.integration.assets.smb import smb_share
 from functions import PUT, POST, GET, DELETE, SSH_TEST

@@ -1,8 +1,10 @@
 import time
+
 import pytest
+from pytest_dependency import depends
+
 from middlewared.test.integration.utils import call, mock
 from functions import POST, GET, PUT, wait_on_job
-from pytest_dependency import depends
 from auto_config import dev_test, pool_name
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')

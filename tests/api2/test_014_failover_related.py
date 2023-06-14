@@ -1,23 +1,17 @@
-#!/usr/bin/env python3
-
-import sys
 import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 
 import pytest
-from functions import GET, SSH_TEST, make_ws_request
-from auto_config import ha, user, password, dev_test
 from pytest_dependency import depends
 
+from functions import GET, SSH_TEST, make_ws_request
+from auto_config import ha, user, password, dev_test
+from middlewared.test.integration.utils import call
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 if ha and "virtual_ip" in os.environ:
     ip = os.environ["virtual_ip"]
 else:
     from auto_config import ip
-
-from middlewared.test.integration.utils import call
 
 
 @pytest.mark.dependency(name='hactl_install_dir')

@@ -1,19 +1,12 @@
-#!/usr/bin/env python3
-
 import contextlib
-import os
-import pytest
-import sys
 import time
-from middlewared.test.integration.utils import call
+
+import pytest
 from pytest_dependency import depends
-# from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET, PUT, POST, DELETE, wait_on_job
 from auto_config import ha, dev_test, interface, ip, pool_name
-
-container_reason = "Can't import docker_username and docker_password"
+from middlewared.test.integration.utils import call
 try:
     from config import (
         docker_username,
@@ -21,13 +14,11 @@ try:
         docker_image,
         docker_tag
     )
-    skip_container_image = pytest.mark.skipif(False, reason=container_reason)
 except ImportError:
-    skip_container_image = pytest.mark.skipif(True, reason=container_reason)
+    pytest.mark.skip(reason="Can't import docker_username and docker_password")
 
-reason = 'Skipping for test development testing'
 # comment pytestmark for development testing with --dev-test
-pytestmark = pytest.mark.skipif(dev_test, reason=reason)
+pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 # Read all the test below only on non-HA
 if not ha:

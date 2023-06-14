@@ -1,18 +1,10 @@
-import sys
-import os
-
+import pytest
 from pytest_dependency import depends
-
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 
 from middlewared.test.integration.utils import call
 from middlewared.service_exception import CallError
 from middlewared.client.client import ClientException
 from auto_config import ha, pool_name
-
-import pytest
-
 
 APP_NAME = 'syncthing'
 

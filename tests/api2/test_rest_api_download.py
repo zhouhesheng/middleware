@@ -4,7 +4,6 @@ import pytest
 import requests
 
 from middlewared.test.integration.utils import client, session, url
-
 from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

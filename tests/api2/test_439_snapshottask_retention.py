@@ -1,20 +1,15 @@
-#!/usr/bin/env python3
 from datetime import datetime, timezone
-import os
-import sys
 from unittest.mock import ANY
 
 import pytest
+from pytest_dependency import depends
 import pytz
 
+from functions import DELETE, GET, POST, PUT, wait_on_job
+from auto_config import dev_test
 from middlewared.test.integration.assets.pool import dataset
 from middlewared.test.integration.utils import assert_creates_job, call
 
-apifolder = os.getcwd()
-sys.path.append(apifolder)
-from functions import DELETE, GET, POST, PUT, wait_on_job
-from auto_config import dev_test
-from pytest_dependency import depends
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

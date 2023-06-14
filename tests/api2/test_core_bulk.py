@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from unittest.mock import ANY
 
 from middlewared.test.integration.utils import call, mock

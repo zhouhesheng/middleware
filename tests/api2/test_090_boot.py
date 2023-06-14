@@ -1,15 +1,8 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
+from time import time, sleep
 
 import pytest
-import sys
-import os
-from time import time, sleep
 from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET
 from auto_config import dev_test
 # comment pytestmark for development testing with --dev-test

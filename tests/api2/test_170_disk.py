@@ -1,19 +1,9 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-
 import pytest
-import sys
-import os
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
 from functions import GET, POST, PUT
 from auto_config import ha, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
-RunTest = True
-TestName = "get disk information"
 DISK_ID = None
 
 disk_list = list(POST('/device/get_info/', 'DISK', controller_a=ha).json().keys())

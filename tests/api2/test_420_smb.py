@@ -1,21 +1,13 @@
-#!/usr/bin/env python3
-
-# Author: Eric Turgeon
-# License: BSD
-# Location for tests into REST API of FreeNAS
-
 import contextlib
-import pytest
-import sys
-import os
-from pytest_dependency import depends
 import json
+import os
 import re
 from datetime import datetime
-from protocols import smb_connection
 from time import sleep
-apifolder = os.getcwd()
-sys.path.append(apifolder)
+
+import pytest
+from pytest_dependency import depends
+
 from functions import PUT, POST, GET, DELETE, SSH_TEST, cmd_test, send_file
 from assets.REST.pool import dataset
 from protocols import smb_connection, smb_share
@@ -23,13 +15,10 @@ from utils import create_dataset
 from auto_config import ip, pool_name, password, user, hostname, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
-
 try:
-    Reason = 'Windows host credential is missing in config.py'
     from config import WIN_HOST, WIN_USERNAME, WIN_PASSWORD
-    windows_host_cred = pytest.mark.skipif(False, reason=Reason)
 except ImportError:
-    windows_host_cred = pytest.mark.skipif(True, reason=Reason)
+    pytest.mark.skip(reason='Windows host credential is missing in config.py')
 
 MOUNTPOINT = f"/tmp/smb-cifs-{hostname}"
 dataset = f"{pool_name}/smb-cifs"

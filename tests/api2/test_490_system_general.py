@@ -1,15 +1,8 @@
-#!/usr/bin/env python3
-# License: BSD
-
 import pytest
+from pytest_dependency import depends
 
 from middlewared.test.integration.utils import call, ssh
 
-import sys
-import os
-from pytest_dependency import depends
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 from functions import PUT, GET, SSH_TEST
 from auto_config import user, password, ip, dev_test
 # comment pytestmark for development testing with --dev-test

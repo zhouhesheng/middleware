@@ -2,10 +2,6 @@ import pytest
 
 from middlewared.test.integration.utils import call, ssh
 from middlewared.test.integration.assets.pool import pool
-
-import os
-import sys
-sys.path.append(os.getcwd())
 from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skip for testing')
 

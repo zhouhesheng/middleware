@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-
-import os
 import pytest
-import sys
-
-apifolder = os.getcwd()
-sys.path.append(apifolder)
 
 from middlewared.service_exception import ValidationErrors
 from middlewared.test.integration.utils import call
