@@ -5,7 +5,7 @@ import types
 
 import pytest
 from pyVim import connect, task as VimTask
-from pyVmomi import vim, vmodl
+from pyVmomi import vim
 
 from middlewared.test.integration.assets.nfs import nfs_share
 from middlewared.test.integration.assets.pool import dataset
@@ -148,11 +148,11 @@ def test_vmware():
                     },
                 )
                 for rds in result["datastores"]:
-                    if (
-                        rds["name"] == ds.name and
-                        rds["description"] == f"NFS mount '/mnt/{ds.dataset}' on {ip}" and
+                    if all((
+                        rds["name"] == ds.name,
+                        rds["description"] == f"NFS mount '/mnt/{ds.dataset}' on {ip}",
                         rds["filesystems"] == [ds.dataset]
-                    ):
+                    )):
                         break
                 else:
                     assert False, result

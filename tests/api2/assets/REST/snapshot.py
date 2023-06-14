@@ -1,14 +1,11 @@
 import contextlib
 
-from functions import DELETE, GET, POST, PUT, wait_on_job
+from functions import DELETE, POST
 
 
 @contextlib.contextmanager
 def snapshot(dataset_id, snapshot_name):
-    payload = {
-        'dataset': dataset_id,
-        'name': snapshot_name
-    }
+    payload = {'dataset': dataset_id, 'name': snapshot_name}
     results = POST("/zfs/snapshot/", payload)
     assert results.status_code == 200, results.text
     assert isinstance(results.json(), dict), results.text
@@ -22,10 +19,7 @@ def snapshot(dataset_id, snapshot_name):
         assert results.status_code == 200, results.text
         assert results.json(), results.text
 
+
 def snapshot_rollback(snapshot_id):
-    payload = {
-        'id': snapshot_id,
-        'options': {}
-    }
-    results = POST("/zfs/snapshot/rollback", payload)
+    results = POST("/zfs/snapshot/rollback", {'id': snapshot_id, 'options': {}})
     assert results.status_code == 200, results.text

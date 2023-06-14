@@ -37,7 +37,7 @@ def test_success():
 
 def test_failure_1():
     with pending_snapshot_delete(datetime(2100, 1, 1)):
-        with mock("vmware.connect", f"""
+        with mock("vmware.connect", """
             async def mock(self, *args):
                 raise Exception('Unknown error')
         """):
@@ -49,7 +49,7 @@ def test_failure_1():
 def test_failure_2():
     with pending_snapshot_delete(datetime(2100, 1, 1)):
         with mock("vmware.connect", return_value=None):
-            with mock("vmware.find_vms_by_uuid", f"""
+            with mock("vmware.find_vms_by_uuid", """
                 async def mock(self, *args):
                     raise Exception('Unknown error')
             """):
@@ -60,7 +60,7 @@ def test_failure_2():
 
 def test_failure_and_expiry():
     with pending_snapshot_delete(datetime(2010, 1, 1)):
-        with mock("vmware.connect", f"""
+        with mock("vmware.connect", """
             async def mock(self, *args):
                 raise Exception('Unknown error')
         """):

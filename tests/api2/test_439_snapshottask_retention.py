@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from unittest.mock import ANY
 
 import pytest
-from pytest_dependency import depends
 import pytz
 
 from functions import DELETE, GET, POST, PUT, wait_on_job
@@ -34,13 +33,13 @@ def test_change_retention(request):
         })
         assert result.status_code == 200, result.text
         task_id = result.json()["id"]
-    
+
         result = POST("/zfs/snapshot/", {
             "dataset": ds,
             "name": "auto-2021-04-12-06-30-1y",
         })
         assert result.status_code == 200, result.text
-    
+
         result = GET(f"/zfs/snapshot/?id={ds}@auto-2021-04-12-06-30-1y&extra.retention=true")
         assert result.status_code == 200, result.text
         assert result.json()[0]["retention"] == {
@@ -50,11 +49,11 @@ def test_change_retention(request):
             "source": "periodic_snapshot_task",
             "periodic_snapshot_task_id": task_id,
         }
+        rtime = result.json()[0]["retention"]["datetime"]["$date"] / 1000
         assert (
-            datetime.fromtimestamp(result.json()[0]["retention"]["datetime"]["$date"] / 1000, timezone.utc).astimezone(tz) ==
-            tz.localize(datetime(2031, 4, 10, 6, 30))
+            datetime.fromtimestamp(rtime, timezone.utc).astimezone(tz) == tz.localize(datetime(2031, 4, 10, 6, 30))
         )
-    
+
         result = POST(f"/pool/snapshottask/id/{task_id}/update_will_change_retention_for/", {
             "naming_schema": "auto-%Y-%m-%d-%H-%M-365d",
         })
@@ -69,10 +68,10 @@ def test_change_retention(request):
                 "fixate_removal_date": True,
             })
             assert result.status_code == 200, result.text
-    
+
         job_status = wait_on_job(job.id, 180)
         assert job_status["state"] == "SUCCESS", str(job_status["results"])
-    
+
         result = GET(f"/zfs/snapshot/?id={ds}@auto-2021-04-12-06-30-1y&extra.retention=true")
         assert result.status_code == 200, result.text
         assert result.json()
@@ -85,9 +84,9 @@ def test_change_retention(request):
             },
             "source": "property",
         }
+        rtime = result.json()[0]["retention"]["datetime"]["$date"] / 1000
         assert (
-            datetime.fromtimestamp(result.json()[0]["retention"]["datetime"]["$date"] / 1000, timezone.utc).astimezone(tz) ==
-            tz.localize(datetime(2031, 4, 10, 6, 30))
+            datetime.fromtimestamp(rtime, timezone.utc).astimezone(tz) == tz.localize(datetime(2031, 4, 10, 6, 30))
         )
 
 
@@ -111,13 +110,13 @@ def test_delete_retention(request):
         })
         assert result.status_code == 200, result.text
         task_id = result.json()["id"]
-    
+
         result = POST("/zfs/snapshot/", {
             "dataset": ds,
             "name": "auto-2021-04-12-06-30-1y",
         })
         assert result.status_code == 200, result.text
-    
+
         result = POST(f"/pool/snapshottask/id/{task_id}/delete_will_change_retention_for/")
         assert result.status_code == 200, result.text
         assert result.json() == {
@@ -132,7 +131,7 @@ def test_delete_retention(request):
 
         job_status = wait_on_job(job.id, 180)
         assert job_status["state"] == "SUCCESS", str(job_status["results"])
-    
+
         result = GET(f"/zfs/snapshot/?id={ds}@auto-2021-04-12-06-30-1y&extra.retention=true")
         assert result.status_code == 200, result.text
         assert result.json()
@@ -145,7 +144,7 @@ def test_delete_retention(request):
             },
             "source": "property",
         }
+        rtime = result.json()[0]["retention"]["datetime"]["$date"] / 1000
         assert (
-            datetime.fromtimestamp(result.json()[0]["retention"]["datetime"]["$date"] / 1000, timezone.utc).astimezone(tz) ==
-            tz.localize(datetime(2031, 4, 10, 6, 30))
+            datetime.fromtimestamp(rtime, timezone.utc).astimezone(tz) == tz.localize(datetime(2031, 4, 10, 6, 30))
         )

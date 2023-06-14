@@ -1,7 +1,6 @@
 import contextlib
 
 import pytest
-from pytest_dependency import depends
 
 from middlewared.service_exception import ValidationErrors
 from middlewared.test.integration.utils import call

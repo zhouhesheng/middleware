@@ -1,8 +1,7 @@
 import contextlib
-import urllib.parse
 from time import sleep
 
-from functions import DELETE, GET, POST, PUT, wait_on_job
+from functions import GET, POST, PUT, wait_on_job
 
 
 def clear_ad_info():
@@ -54,6 +53,7 @@ def clear_ldap_info():
     job_status = wait_on_job(results.json()['job_id'], 180)
     assert job_status['state'] == 'SUCCESS', str(job_status['results'])
 
+
 @contextlib.contextmanager
 def active_directory(domain, username, password, **kwargs):
     payload = {
@@ -76,7 +76,7 @@ def active_directory(domain, username, password, **kwargs):
     sleep(5)
     try:
         config = results.json()
-        del(config['bindpw'])
+        config.pop('bindpw')
         yield {
             'config': config,
             'result': job_status['results']
@@ -130,7 +130,7 @@ def ldap(basedn, binddn, bindpw, hostname, **kwargs):
     }
 
     results = PUT("/ldap/", payload)
-    del(payload['bindpw'])
+    payload.pop('bindpw')
 
     assert results.status_code == 200, f'res: {results.text}, payload: {payload}'
     job_id = results.json()['job_id']
@@ -142,7 +142,7 @@ def ldap(basedn, binddn, bindpw, hostname, **kwargs):
     sleep(5)
     try:
         config = results.json()
-        del(config['bindpw'])
+        config.pop('bindpw')
         yield {
             'config': config,
             'result': job_status['results']

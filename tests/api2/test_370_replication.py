@@ -3,14 +3,13 @@ import string
 import textwrap
 
 import pytest
-from pytest_dependency import depends
 
+from middlewared.test.integration.utils import call
 from functions import GET, POST, DELETE
 from auto_config import dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
-from middlewared.test.integration.utils import call
 
 BASE_REPLICATION = {
     "direction": "PUSH",
@@ -197,17 +196,26 @@ def test_00_bootstrap(request, credentials, periodic_snapshot_tasks):
           retention_policy="CUSTOM", lifetime_value=2, lifetime_unit="WEEK"), None),
 
     # Complex custom retention policy
-    (dict(periodic_snapshot_tasks=["data-recursive"],
-          retention_policy="CUSTOM", lifetime_value=2, lifetime_unit="WEEK", lifetimes=[
-              dict(schedule={"hour": "0"}, lifetime_value=30, lifetime_unit="DAY"),
-              dict(schedule={"hour": "0", "dow": "1"}, lifetime_value=1, lifetime_unit="YEAR"),
-          ]), None),
+    (dict(
+        periodic_snapshot_tasks=["data-recursive"],
+        retention_policy="CUSTOM",
+        lifetime_value=2,
+        lifetime_unit="WEEK",
+        lifetimes=[
+            dict(schedule={"hour": "0"}, lifetime_value=30, lifetime_unit="DAY"),
+            dict(schedule={"hour": "0", "dow": "1"}, lifetime_value=1, lifetime_unit="YEAR"),
+        ]
+    ), None),
 
     # name_regex
     (dict(name_regex="manual-.+"), None),
     (dict(direction="PULL", name_regex="manual-.+"), None),
-    (dict(name_regex="manual-.+",
-          retention_policy="CUSTOM", lifetime_value=2, lifetime_unit="WEEK"), "retention_policy"),
+    (dict(
+        name_regex="manual-.+",
+        retention_policy="CUSTOM",
+        lifetime_value=2,
+        lifetime_unit="WEEK"
+    ), "retention_policy"),
 
     # replicate
     (dict(source_datasets=["tank/data", "tank/data/work"], periodic_snapshot_tasks=["data-recursive"], replicate=True,

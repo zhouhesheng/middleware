@@ -8,15 +8,13 @@ from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 try:
     from config import (
-        FREEIPA_IP,
         FREEIPA_BASEDN,
         FREEIPA_BINDDN,
         FREEIPA_BINDPW,
         FREEIPA_HOSTNAME,
     )
 except ImportError:
-    Reason = 'FREEIPA* variable are not setup in config.py'
-    pytestmark = pytest.mark.skipif(True, reason=Reason)
+    pytestmark = pytest.mark.skipif(True, reason='FREEIPA* variable are not setup in config.py')
 
 
 @pytest.fixture(scope="module")

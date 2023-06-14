@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from functions import GET, PUT, POST, DELETE
 from auto_config import pool_name, dev_test

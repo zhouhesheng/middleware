@@ -2,14 +2,14 @@ import contextlib
 import urllib.parse
 from time import sleep
 
-from functions import DELETE, GET, POST, PUT, wait_on_job
+from functions import DELETE, POST, wait_on_job
 
 
 @contextlib.contextmanager
 def dataset(pool_name, dataset_name, options=None, **kwargs):
 
     dataset = f"{pool_name}/{dataset_name}"
-    payload = { 'name': dataset, **(options or {}) }
+    payload = {'name': dataset, **(options or {})}
 
     results = POST("/pool/dataset/", payload)
     assert results.status_code == 200, results.text
@@ -31,5 +31,5 @@ def dataset(pool_name, dataset_name, options=None, **kwargs):
     finally:
         if 'delete_delay' in kwargs:
             sleep(kwargs['delete_delay'])
-        results = DELETE(f"/pool/dataset/id/{urllib.parse.quote(dataset, '')}/", {'recursive' : True} )
+        results = DELETE(f"/pool/dataset/id/{urllib.parse.quote(dataset, '')}/", {'recursive': True})
         assert results.status_code == 200, results.text

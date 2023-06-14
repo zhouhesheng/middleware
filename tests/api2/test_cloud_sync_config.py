@@ -1,7 +1,6 @@
 import time
 
 import pytest
-from pytest_dependency import depends
 
 from auto_config import dev_test
 from middlewared.test.integration.assets.cloud_sync import credential, task

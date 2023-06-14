@@ -38,7 +38,7 @@ def test_system_general_ui_allowlist():
             assert resp_opcode == 1, msg
 
         # Set `ui_allowlist` to IP we are using
-        call("system.general.update", {"ui_allowlist":  [local_ip]})
+        call("system.general.update", {"ui_allowlist": [local_ip]})
         call("system.general.ui_restart", 0)
         time.sleep(10)
 

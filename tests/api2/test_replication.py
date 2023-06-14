@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from middlewared.test.integration.assets.keychain import localhost_ssh_credentials
 from middlewared.test.integration.assets.pool import dataset

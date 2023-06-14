@@ -75,7 +75,7 @@ def test_03_create_new_template(request, acltype):
 
     results = POST('/filesystem/acltemplate', payload)
     assert results.status_code == 200, results.text
- 
+
 
 def test_04_legacy_check_default_acl_choices(request):
     """

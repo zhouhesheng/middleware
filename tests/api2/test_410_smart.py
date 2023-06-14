@@ -2,16 +2,12 @@ from time import sleep
 
 import pytest
 
-from functions import DELETE, POST, PUT, GET
+from functions import POST, PUT, GET
 from auto_config import interface, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
-not_real = (
-    interface == "vtnet0"
-    or interface == "em0"
-    or 'enp0s' in interface
-)
+not_real = any((interface == "vtnet0"), (interface == "em0"), ('enp0s' in interface))
 
 
 def test_05_enable_smartd_service_at_boot():

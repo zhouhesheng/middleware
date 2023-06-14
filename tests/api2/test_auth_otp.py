@@ -39,5 +39,3 @@ def test_otp_http_basic_auth_upload(otp_enabled):
         )
         assert r.status_code == 401
         assert r.text == "HTTP Basic Auth is unavailable when OTP is enabled"
-
-

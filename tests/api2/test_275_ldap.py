@@ -36,12 +36,12 @@ smb_name = "TestLDAPShare"
 smb_path = f"/mnt/{dataset}"
 VOL_GROUP = "root"
 
+
 @pytest.fixture(scope="module")
 def do_ldap_connection(request):
-    with ldap(LDAPBASEDN, LDAPBINDDN, LDAPBINDPASSWORD, LDAPHOSTNAME,
-        has_samba_schema=True,
-    ) as ldap_conn:
+    with ldap(LDAPBASEDN, LDAPBINDDN, LDAPBINDPASSWORD, LDAPHOSTNAME, has_samba_schema=True) as ldap_conn:
         yield (request, ldap_conn)
+
 
 def test_01_get_ldap():
     results = GET("/ldap/")

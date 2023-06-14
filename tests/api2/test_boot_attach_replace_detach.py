@@ -23,11 +23,7 @@ if not ha:
         call("boot.attach", to_attach, job=True)
         while True:
             state = call("boot.get_state")
-            if not (
-                state["scan"] and
-                state["scan"]["function"] == "RESILVER" and
-                state["scan"]["state"] == "SCANNING"
-            ):
+            if not state["scan"] and state["scan"]["function"] == "RESILVER" and state["scan"]["state"] == "SCANNING":
                 break
 
         assert state["topology"]["data"][0]["type"] == "MIRROR"

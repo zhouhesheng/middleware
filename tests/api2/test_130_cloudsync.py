@@ -3,7 +3,6 @@ import time
 import urllib.parse
 
 import pytest
-from pytest_dependency import depends
 
 from functions import PUT, POST, GET, DELETE, SSH_TEST
 from auto_config import pool_name, ip, password, user, dev_test

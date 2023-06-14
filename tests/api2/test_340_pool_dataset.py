@@ -398,13 +398,13 @@ def test_33_simplified_charts_api(request):
     USER2_TO_ADD = 8765310
     GROUP_TO_ADD = 1138
     NFS4_ACL_PAYLOAD = [
-       {'id_type': 'USER', 'id': USER_TO_ADD, 'access': 'MODIFY'},
-       {'id_type': 'GROUP', 'id': GROUP_TO_ADD, 'access': 'READ'},
-       {'id_type': 'USER', 'id': USER2_TO_ADD, 'access': 'FULL_CONTROL'},
+        {'id_type': 'USER', 'id': USER_TO_ADD, 'access': 'MODIFY'},
+        {'id_type': 'GROUP', 'id': GROUP_TO_ADD, 'access': 'READ'},
+        {'id_type': 'USER', 'id': USER2_TO_ADD, 'access': 'FULL_CONTROL'},
     ]
     ACL_PAYLOAD = [
-       {'id_type': 'USER', 'id': USER_TO_ADD, 'access': 'MODIFY'},
-       {'id_type': 'GROUP', 'id': GROUP_TO_ADD, 'access': 'READ'}
+        {'id_type': 'USER', 'id': USER_TO_ADD, 'access': 'MODIFY'},
+        {'id_type': 'GROUP', 'id': GROUP_TO_ADD, 'access': 'READ'}
     ]
 
     # TEST NFS4 ACL type
@@ -457,7 +457,6 @@ def test_33_simplified_charts_api(request):
         assert check_for_entry(acl, 'USER', USER_TO_ADD, {'BASIC': 'MODIFY'}), str(acl)
         assert check_for_entry(acl, 'GROUP', GROUP_TO_ADD, {'BASIC': 'READ'}), str(acl)
         assert check_for_entry(acl, 'USER', USER2_TO_ADD, {'BASIC': 'FULL_CONTROL'}), str(acl)
-
 
     with create_dataset(pool_name, 'APPS_POSIX') as ds:
         res = make_ws_request(ip, {'msg': 'method', 'method': 'filesystem.add_to_acl', 'params': [{

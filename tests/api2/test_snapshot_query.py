@@ -43,18 +43,18 @@ def test_query_all_names(fixture1):
     }
     assert {f"{pool}/test@snap-1", f"{pool}/test@snap-2", f"{pool}/test/test1@snap-1", f"{pool}/test/test1@snap-2",
             f"{pool}/test/test2@snap-1", f"{pool}/test/test2@snap-2",
-            f"test/test@snap-1", f"test/test@snap-2", f"test/test/test1@snap-1", f"test/test/test1@snap-2",
-            f"test/test/test2@snap-1", f"test/test/test2@snap-2"}.issubset(names)
+            "test/test@snap-1", "test/test@snap-2", "test/test/test1@snap-1", "test/test/test1@snap-2",
+            "test/test/test2@snap-1", "test/test/test2@snap-2"}.issubset(names)
 
 
 @pytest.mark.parametrize("filters,names", [
-    ([["pool", "=", "test"]], {f"test/test@snap-1", f"test/test@snap-2", f"test/test/test1@snap-1",
-                               f"test/test/test1@snap-2", f"test/test/test2@snap-1", f"test/test/test2@snap-2"}),
+    ([["pool", "=", "test"]], {"test/test@snap-1", "test/test@snap-2", "test/test/test1@snap-1",
+                               "test/test/test1@snap-2", "test/test/test2@snap-1", "test/test/test2@snap-2"}),
     ([["dataset", "=", f"{pool}/test"]], {f"{pool}/test@snap-1", f"{pool}/test@snap-2"}),
     ([["dataset", "in", [f"{pool}/test/test1", "test/test/test2"]]], {f"{pool}/test/test1@snap-1",
                                                                       f"{pool}/test/test1@snap-2",
-                                                                      f"test/test/test2@snap-1",
-                                                                      f"test/test/test2@snap-2"}),
+                                                                      "test/test/test2@snap-1",
+                                                                      "test/test/test2@snap-2"}),
 ])
 def test_query_names_by_pool_or_dataset(fixture1, filters, names):
     assert {

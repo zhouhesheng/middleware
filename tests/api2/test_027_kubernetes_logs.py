@@ -1,11 +1,9 @@
 import contextlib
 from time import sleep
 
-import pytest
 from pytest_dependency import depends
 
 from middlewared.test.integration.utils import call, ssh
-from auto_config import ip
 
 
 @contextlib.contextmanager

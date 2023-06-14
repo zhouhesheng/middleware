@@ -1,7 +1,6 @@
 import re
 
 import pytest
-from pytest_dependency import depends
 
 from functions import DELETE, GET, POST, SSH_TEST
 from auto_config import dev_test, ip, pool_name, user, password

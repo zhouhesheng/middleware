@@ -114,7 +114,7 @@ def test_unix_socket_auth_fails_to_call_forbidden_method(unprivileged_user):
 
 
 def test_unix_socket_auth_fails_when_user_has_no_privilege():
-    with dataset(f"noconnect_homedir") as homedir:
+    with dataset("noconnect_homedir") as homedir:
         with user({
             "username": "noconnect",
             "full_name": "Noconnect",
@@ -123,7 +123,7 @@ def test_unix_socket_auth_fails_when_user_has_no_privilege():
             "home": f"/mnt/{homedir}",
             "password": "test1234",
         }):
-            result = ssh(f"sudo -u noconnect midclt call pool.create", check=False, complete_response=True)
+            result = ssh("sudo -u noconnect midclt call pool.create", check=False, complete_response=True)
             assert "Not authenticated" in result["stderr"]
 
 
@@ -134,11 +134,11 @@ def test_token_auth_session_list_terminate(unprivileged_user, unprivileged_user_
         sessions = call("auth.sessions")
         my_sessions = [
             s for s in sessions
-            if (
-                s["credentials"] == "TOKEN" and
-                s["credentials_data"]["parent"]["credentials"] == "LOGIN_PASSWORD" and
+            if all((
+                s["credentials"] == "TOKEN",
+                s["credentials_data"]["parent"]["credentials"] == "LOGIN_PASSWORD",
                 s["credentials_data"]["parent"]["credentials_data"]["username"] == unprivileged_user.username
-            )
+            ))
         ]
         assert len(my_sessions) == 1, sessions
 

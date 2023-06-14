@@ -9,7 +9,7 @@ from middlewared.test.integration.assets.account import unprivileged_user as unp
 from middlewared.test.integration.assets.api_key import api_key
 from middlewared.test.integration.utils import client
 from functions import GET
-from auto_config import password, ip
+from auto_config import ip
 
 
 @contextlib.contextmanager

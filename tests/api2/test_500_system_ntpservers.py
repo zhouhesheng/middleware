@@ -1,7 +1,6 @@
 import time
 
 import pytest
-from pytest_dependency import depends
 
 from auto_config import badNtpServer, dev_test, ip, password, user
 from functions import DELETE, GET, POST, PUT, SSH_TEST

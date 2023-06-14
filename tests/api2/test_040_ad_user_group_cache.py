@@ -1,7 +1,7 @@
 import pytest
 from pytest_dependency import depends
 
-from functions import PUT, POST, GET, SSH_TEST, wait_on_job
+from functions import GET, SSH_TEST, wait_on_job
 from assets.REST.directory_services import active_directory, override_nameservers
 from auto_config import dev_test, ip, hostname, password, user
 # comment pytestmark for development testing with --dev-test
@@ -56,7 +56,7 @@ def test_06_wait_for_cache_fill(request):
     Wait for it to successfully complete.
     """
     depends(request, ["AD_IS_HEALTHY"])
-    results = GET(f'/core/get_jobs/?method=activedirectory.fill_cache')
+    results = GET('/core/get_jobs/?method=activedirectory.fill_cache')
     job_status = wait_on_job(results.json()[-1]['id'], 180)
     assert job_status['state'] == 'SUCCESS', str(job_status['results'])
 
@@ -195,7 +195,7 @@ def test_10_check_lazy_initialization_of_users_and_groups_by_name(request):
         return
 
     ad_user_id = results.json()[0]['uid']
-    assert results.json()[0]['username'] == ad_user, results.text 
+    assert results.json()[0]['username'] == ad_user, results.text
 
     results = GET('/group', payload={
         'query-filters': [['name', '=', ad_group]],
@@ -207,7 +207,7 @@ def test_10_check_lazy_initialization_of_users_and_groups_by_name(request):
         return
 
     ad_domain_users_id = results.json()[0]['gid']
-    assert results.json()[0]['name'] == ad_group, results.text 
+    assert results.json()[0]['name'] == ad_group, results.text
 
     """
     The following two tests validate that cache insertion occured.
@@ -252,14 +252,14 @@ def test_11_check_lazy_initialization_of_users_and_groups_by_id(request):
         'query-options': {'extra': {"search_dscache": True}},
     })
     assert results.status_code == 200, results.text
-    assert results.json()[0]['uid'] == ad_user_id, results.text 
+    assert results.json()[0]['uid'] == ad_user_id, results.text
 
     results = GET('/group', payload={
         'query-filters': [['gid', '=', ad_domain_users_id]],
         'query-options': {'extra': {"search_dscache": True}},
     })
     assert results.status_code == 200, results.text
-    assert results.json()[0]['gid'] == ad_domain_users_id, results.text 
+    assert results.json()[0]['gid'] == ad_domain_users_id, results.text
 
     """
     The following two tests validate that cache insertion occured.

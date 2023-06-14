@@ -1,4 +1,3 @@
-import json
 from contextlib import contextmanager
 
 import pytest
@@ -127,7 +126,7 @@ def do_ldap_connection(request):
     assert results.status_code == 200, results.text
     domain_info = results.json()
 
-    with stop_activedirectory(request) as ad:
+    with stop_activedirectory(request):
         res = make_ws_request(ip, {
             'msg': 'method',
             'method': 'kerberos.get_cred',

@@ -1,11 +1,10 @@
 import contextlib
 
 import pytest
-from pytest_dependency import depends
 
 from middlewared.test.integration.assets.api_key import api_key
 from middlewared.test.integration.utils import call, client
-from functions import POST, GET, DELETE, SSH_TEST
+from functions import POST, DELETE, SSH_TEST
 from auto_config import password, user as user_, ip, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skip for development testing')
@@ -66,10 +65,7 @@ def test_api_key_auth_session_list_terminate():
             sessions = call("auth.sessions")
             my_sessions = [
                 s for s in sessions
-                if (
-                    s["credentials"] == "API_KEY" and
-                    s["credentials_data"]["api_key"]["name"] == "Test API Key"
-                )
+                if s["credentials"] == "API_KEY" and s["credentials_data"]["api_key"]["name"] == "Test API Key"
             ]
             assert len(my_sessions) == 1, sessions
 

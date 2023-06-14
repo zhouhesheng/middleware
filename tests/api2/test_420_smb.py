@@ -1,4 +1,3 @@
-import contextlib
 import json
 import os
 import re
@@ -8,17 +7,17 @@ from time import sleep
 import pytest
 from pytest_dependency import depends
 
-from functions import PUT, POST, GET, DELETE, SSH_TEST, cmd_test, send_file
-from assets.REST.pool import dataset
-from protocols import smb_connection, smb_share
+from functions import PUT, POST, GET, DELETE, SSH_TEST, send_file
+from protocols import smb_connection
 from utils import create_dataset
 from auto_config import ip, pool_name, password, user, hostname, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 try:
     from config import WIN_HOST, WIN_USERNAME, WIN_PASSWORD
+    windows_host_cred = pytest.mark.skipif(False, reason='')
 except ImportError:
-    pytest.mark.skip(reason='Windows host credential is missing in config.py')
+    windows_host_cred = pytest.mark.skipif(True, reason='Windows host credential is missing in config.py')
 
 MOUNTPOINT = f"/tmp/smb-cifs-{hostname}"
 dataset = f"{pool_name}/smb-cifs"
@@ -37,6 +36,7 @@ root_path_verification = {
     "group": "root",
     "acl": False
 }
+
 
 @pytest.mark.dependency(name="smb_001")
 def test_001_setting_auxilary_parameters_for_mount_smbfs(request):

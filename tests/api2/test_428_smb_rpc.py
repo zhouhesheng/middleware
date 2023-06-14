@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from auto_config import (ip, dev_test, pool_name)
+from auto_config import ip, dev_test
 from functions import GET, POST
 from middlewared.test.integration.assets.account import user
 from middlewared.test.integration.assets.smb import smb_share
@@ -15,11 +15,13 @@ pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development 
 SMB_USER = "smbrpcuser"
 SMB_PWD = "smb1234#!@"
 
+
 @pytest.fixture(scope="module")
 def setup_smb_share(request):
     with dataset('rpc_test', data={'share_type': 'SMB'}) as ds:
         with smb_share(os.path.join('/mnt', ds), "RPC_TEST", {"abe": True, "purpose": "NO_PRESET"}) as s:
             yield {'dataset': ds, 'share': s}
+
 
 @pytest.fixture(autouse=True, scope="function")
 def setup_smb_user(request):

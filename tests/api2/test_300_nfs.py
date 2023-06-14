@@ -4,7 +4,6 @@ from time import sleep
 import urllib.parse
 
 import pytest
-from pytest_dependency import depends
 
 from functions import PUT, POST, GET, SSH_TEST, DELETE, wait_on_job, make_ws_request
 from auto_config import dev_test, password, user, pool_name, ha, hostname

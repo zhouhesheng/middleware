@@ -51,6 +51,6 @@ def upload_file_impl(lock):
             if lock:
                 call('pool.dataset.lock', test_dataset, job=True)
             file_path_on_tn = f'/mnt/{test_dataset}/testfile'
-            job_detail = upload_file(f.name,file_path_on_tn)
+            job_detail = upload_file(f.name, file_path_on_tn)
             assert job_detail['results']['state'] == ('FAILED' if lock else 'SUCCESS')
             assert file_exists(file_path_on_tn) is not lock

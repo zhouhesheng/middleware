@@ -17,16 +17,16 @@ def test_block_hooks(block):
             from pathlib import Path
 
             sentinel = Path("/tmp/block_hooks_sentinel")
-            
+
             async def hook(middleware):
-                sentinel.write_text("")        
+                sentinel.write_text("")
 
             self.middleware.register_hook(hook_name, hook, blockable=True, sync=True)
 
             sentinel.unlink(missing_ok=True)
             with self.middleware.block_hooks(*blocked_hooks):
                 await self.middleware.call_hook(hook_name)
-            
+
             return sentinel.exists()
     """):
         with client() as c:

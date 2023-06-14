@@ -1,6 +1,6 @@
 from middlewared.test.integration.assets.nfs import nfs_share
 from middlewared.test.integration.assets.pool import dataset
-from middlewared.test.integration.utils import call, client
+from middlewared.test.integration.utils import call
 
 
 PARENT_DATASET = 'test_parent'

@@ -265,7 +265,7 @@ def test_revoking_ca():
 
 def test_created_certs_exist_on_filesystem():
     with intermediate_certificate_authority('root_ca', 'intermediate_ca') as (root_ca, intermediate_ca):
-        with certificate_signing_request('csr_test') as csr:
+        with certificate_signing_request('csr_test'):
             cert = call('certificate.create', {
                 'name': 'cert_test',
                 'signedby': intermediate_ca['id'],
@@ -282,7 +282,7 @@ def test_deleted_certs_dont_exist_on_filesystem():
     with intermediate_certificate_authority('root_ca2', 'intermediate_ca2') as (root_ca2, intermediate_ca2):
         # no-op
         pass
-    with certificate_signing_request('csr_test2') as csr2:
+    with certificate_signing_request('csr_test2'):
         pass
     assert get_cert_current_files() == get_cert_expected_files()
 

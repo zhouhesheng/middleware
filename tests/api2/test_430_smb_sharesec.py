@@ -3,7 +3,7 @@ from pytest_dependency import depends
 
 from assets.REST.pool import dataset
 from middlewared.test.integration.assets.smb import smb_share
-from functions import PUT, POST, GET, DELETE, SSH_TEST
+from functions import PUT, POST, SSH_TEST
 from functions import make_ws_request, wait_on_job
 from auto_config import pool_name, user, password, ip, dev_test
 # comment pytestmark for development testing with --dev-test

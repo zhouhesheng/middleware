@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from functions import GET, POST, SSH_TEST
 from auto_config import ip, user, password, dev_test
@@ -26,6 +25,7 @@ def test_02_create_vmware():
     results = POST('/vmware/get_datastores/', payload)
     assert results.status_code == 200, results.text
     assert isinstance(results.json(), list) is True, results.text
+
 
 def test_03_verify_vmware_get_datastore_do_not_leak_password(request):
     cmd = f"grep -R \"{VMWARE_PASSWORD}\" /var/log/middlewared.log"

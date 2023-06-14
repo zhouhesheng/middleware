@@ -9,9 +9,10 @@ from middlewared.test.integration.utils import call, mock, ssh
 from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
+
 @pytest.mark.flaky(reruns=5, reruns_delay=5)
 def test_jobs_execute_in_parallel():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import job
 
         @job()
@@ -34,7 +35,7 @@ def test_jobs_execute_in_parallel():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=5)
 def test_jobs_execute_sequentially_when_there_is_a_lock():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import job
 
         @job(lock="test")
@@ -57,7 +58,7 @@ def test_jobs_execute_sequentially_when_there_is_a_lock():
 
 @pytest.mark.flaky(reruns=5, reruns_delay=5)
 def test_lock_with_argument():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import job
 
         @job(lock=lambda args: f"test.{args[0]}")
@@ -83,12 +84,12 @@ def test_lock_queue_size():
     try:
         with mock("test.test1", """
             from middlewared.service import job
-            
+
             @job(lock="test", lock_queue_size=1)
             def mock(self, job, *args):
                 with open("/tmp/test", "a") as f:
                     f.write("a\\n")
-            
+
                 import time
                 time.sleep(5)
         """):

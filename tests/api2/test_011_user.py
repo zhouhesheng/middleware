@@ -155,6 +155,7 @@ def test_05_verify_user_exists(request):
     assert pw['sid_info']['domain_information']['online'], results.text
     assert pw['sid_info']['domain_information']['activedirectory'] is False, results.text
 
+
 def test_06_get_user_info(request):
     depends(request, ["user_02", "user_01"])
     global userinfo

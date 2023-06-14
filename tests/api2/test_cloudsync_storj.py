@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from middlewared.test.integration.utils import call, ssh
 from middlewared.test.integration.assets.cloud_sync import credential, task, run_task

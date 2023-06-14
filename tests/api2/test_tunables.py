@@ -48,7 +48,7 @@ def test_create_invalid_zfs():
 
 def test_sysctl_lifecycle():
     def assert_default_value():
-        assert ssh("cat /etc/sysctl.d/tunables.conf", check=False) == f""
+        assert ssh("cat /etc/sysctl.d/tunables.conf", check=False) == ""
         assert ssh(f"sysctl -n {SYSCTL}") == f"{SYSCTL_DEFAULT_VALUE}\n"
 
     def assert_new_value():
@@ -84,10 +84,10 @@ def test_sysctl_lifecycle():
 
 def test_udev_lifecycle():
     def assert_exists():
-        assert ssh("cat /etc/udev/rules.d/10-disable-usb.rules") == f"BUS==\"usb\", OPTIONS+=\"ignore_device\"\n"
+        assert ssh("cat /etc/udev/rules.d/10-disable-usb.rules") == "BUS==\"usb\", OPTIONS+=\"ignore_device\"\n"
 
     def assert_does_not_exist():
-        assert ssh("cat /etc/udev/rules.d/10-disable-usb.rules", check=False) == f""
+        assert ssh("cat /etc/udev/rules.d/10-disable-usb.rules", check=False) == ""
 
     tunable = call("tunable.create", {
         "type": "UDEV",
@@ -117,7 +117,7 @@ def test_udev_lifecycle():
 def test_zfs_lifecycle():
     with mock_binary("/usr/sbin/update-initramfs", exitcode=0):
         def assert_default_value():
-            assert ssh("cat /etc/modprobe.d/zfs.conf", check=False) == f""
+            assert ssh("cat /etc/modprobe.d/zfs.conf", check=False) == ""
             assert ssh(f"cat /sys/module/zfs/parameters/{ZFS}") == f"{ZFS_DEFAULT_VALUE}\n"
 
         def assert_new_value():

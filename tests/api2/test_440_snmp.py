@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from functions import PUT, GET, POST, SSH_TEST
 from auto_config import ip, password, user, dev_test

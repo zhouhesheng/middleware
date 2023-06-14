@@ -56,13 +56,11 @@ def test_06_wait_for_the_alert_and_get_the_id(request):
     call("alert.process_alerts")
     while True:
         for line in GET("/alert/list/").json():
-            if (
-                line['source'] == 'VolumeStatus' and
-                line['args']['volume'] == pool_name and
-                line['args']['state'] == 'DEGRADED'
-            ):
-                alert_id = line['id']
-                return
+            if line['source'] == 'VolumeStatus':
+                if line['args']['volume'] == pool_name:
+                    if line['args']['state'] == 'DEGRADED':
+                        alert_id = line['id']
+                        return
 
         sleep(1)
 

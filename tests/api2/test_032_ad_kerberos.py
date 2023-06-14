@@ -1,4 +1,3 @@
-import json
 import time
 from calendar import timegm
 from contextlib import contextmanager
@@ -122,9 +121,7 @@ def add_kerberos_keytab(ktname):
 
 @contextmanager
 def add_kerberos_realm(realm_name):
-    results = POST("/kerberos/realm/",{
-        'realm': realm_name,
-    })
+    results = POST("/kerberos/realm/", {'realm': realm_name})
     assert results.status_code == 200, results.text
     realm_id = results.json()['id']
 
@@ -178,6 +175,7 @@ def test_01_set_nameserver_for_ad(set_ad_nameserver):
 
 def test_02_kerberos_keytab_and_realm(do_ad_connection):
     depends(do_ad_connection[0], ["SET_DNS"])
+
     def krb5conf_parser(krb5conf_lines, idx, entry, state):
         if entry.lstrip() == f"kdc = {SAMPLEDOM_REALM['kdc'][0]}":
             assert krb5conf_lines[idx + 1].lstrip() == f"kdc = {SAMPLEDOM_REALM['kdc'][1]}"
@@ -189,7 +187,6 @@ def test_02_kerberos_keytab_and_realm(do_ad_connection):
 
         if entry.lstrip() == f"kpasswd_server = {' '.join(SAMPLEDOM_REALM['kpasswd_server'])}":
             state['has_kpasswd_server'] = True
-
 
     results = GET('/activedirectory/started/')
     assert results.status_code == 200, results.text
@@ -252,18 +249,17 @@ def test_02_kerberos_keytab_and_realm(do_ad_connection):
     upload, validate that it was uploaded, and verify that the
     keytab is read back correctly.
     """
-    with add_kerberos_keytab("KT2") as new_keytab:
+    with add_kerberos_keytab("KT2"):
         results = GET('/kerberos/keytab/?name=KT2')
         assert results.status_code == 200, results.text
         assert len(results.json()) == 1, results.text
         assert results.json()[0]['file'] != "", "second keytab file empty"
         errstr = ""
         try:
-             b64decode(results.json()[0]['file'])
+            b64decode(results.json()[0]['file'])
         except Exception as e:
-             errstr = e.args[0]
+            assert False, f"b64decode of keytab failed with: {e.args[0]!r}"
 
-        assert errstr == "", f"b64decode of keytab failed with: {errstr}"
         assert results.json()[0]['file'] == SAMPLE_KEYTAB, results.text
 
     """
@@ -307,6 +303,7 @@ def test_02_kerberos_keytab_and_realm(do_ad_connection):
 
 def test_03_kerberos_krbconf(do_ad_connection):
     depends(do_ad_connection[0], ["SET_DNS"])
+
     def parser_1(unused, idx, sec, state):
         if not sec.startswith("appdefaults"):
             return
@@ -400,7 +397,7 @@ def test_04_kerberos_nfs4(do_ad_connection):
     assert res['result'] is False
 
     with dataset(pool_name, 'AD_NFS') as ds:
-        with nfs_share(ds['mountpoint'], options={'comment': 'KRB Test Share'}) as share:
+        with nfs_share(ds['mountpoint'], options={'comment': 'KRB Test Share'}):
             payload = {"protocols": ["NFSV3", "NFSV4"]}
             results = PUT("/nfs/", payload)
             assert results.status_code == 200, results.text

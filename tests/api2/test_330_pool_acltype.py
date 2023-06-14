@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from functions import POST, GET, PUT, DELETE, SSH_TEST, make_ws_request
 from auto_config import ip, user, password, pool_name, dev_test
@@ -79,7 +78,6 @@ def test_07_reset_acltype_to_posix(request):
         }
     )
     assert result.status_code == 200, result.text
-
 
     payload = {
         'msg': 'method',

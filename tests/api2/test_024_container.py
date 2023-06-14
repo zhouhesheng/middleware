@@ -93,7 +93,6 @@ if not ha:
         assert results.status_code == 200, results.text
         assert isinstance(results.json(), list), results.text
 
-    @skip_container_image
     @pytest.mark.dependency(name='pull_private_image')
     @pytest.mark.skip(reason='IX network drops network connection routinely.Sometimes, image is not pulled '
                              'successfully.Skipping test until it is fixed')

@@ -1,7 +1,4 @@
 import pytest
-from pytest_dependency import depends
-
-from middlewared.test.integration.utils import call, ssh
 
 from functions import PUT, GET, SSH_TEST
 from auto_config import user, password, ip, dev_test

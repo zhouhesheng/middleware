@@ -28,7 +28,7 @@ def test_root_password_disabled():
                 {"get": True, "prefix": "bsdgrp_"},
             )["id"]
 
-            with dataset(f"admin_homedir") as homedir:
+            with dataset("admin_homedir") as homedir:
                 events = []
 
                 def callback(type, **message):

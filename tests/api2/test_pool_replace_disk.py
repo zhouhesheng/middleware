@@ -57,7 +57,7 @@ def test_pool_replace_disk(topology, i):
 def test_pool_replace_disk_swap(swaps):
     unused = call("disk.get_unused")
     if len(unused) < 3:
-        raise RuntimeError(f"At least 3 unused disks required to run this test")
+        raise RuntimeError("At least 3 unused disks required to run this test")
 
     test_disks = unused[:3]
 

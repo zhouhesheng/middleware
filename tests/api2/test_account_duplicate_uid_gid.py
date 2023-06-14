@@ -10,7 +10,7 @@ from middlewared.test.integration.utils import call
 
 @pytest.fixture(scope="module")
 def uid_1234():
-    with dataset(f"user1_homedir") as user1_homedir:
+    with dataset("user1_homedir") as user1_homedir:
         with user({
             "username": "user1",
             "full_name": "user1",
@@ -25,15 +25,12 @@ def uid_1234():
 
 @pytest.fixture(scope="module")
 def gid_1234():
-    with group({
-        "name": "group1",
-        "gid": 1234,
-    }) as gid_1234:
+    with group({"name": "group1", "gid": 1234}) as gid_1234:
         yield gid_1234
 
 
 def test_create_duplicate_uid(uid_1234):
-    with dataset(f"user2_homedir") as user2_homedir:
+    with dataset("user2_homedir") as user2_homedir:
         with pytest.raises(ValidationErrors) as ve:
             with user({
                 "username": "user2",
@@ -52,7 +49,7 @@ def test_create_duplicate_uid(uid_1234):
 
 
 def test_update_duplicate_uid(uid_1234):
-    with dataset(f"user2_homedir") as user2_homedir:
+    with dataset("user2_homedir") as user2_homedir:
         with user({
             "username": "user2",
             "full_name": "user2",
@@ -75,10 +72,7 @@ def test_update_no_duplicate_uid(uid_1234):
 
 def test_create_duplicate_gid(gid_1234):
     with pytest.raises(ValidationErrors) as ve:
-        with group({
-            "name": "group2",
-            "gid": 1234,
-        }):
+        with group({"name": "group2", "gid": 1234}):
             pass
 
     assert ve.value.errors == [

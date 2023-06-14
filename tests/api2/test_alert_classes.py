@@ -1,11 +1,9 @@
 from unittest.mock import ANY
 
 import pytest
-from pytest_dependency import depends
 
 from middlewared.service_exception import ValidationErrors
 from middlewared.test.integration.utils import call
-
 from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

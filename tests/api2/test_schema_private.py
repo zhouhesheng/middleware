@@ -7,7 +7,7 @@ pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development 
 
 
 def test_private_params_do_not_leak_to_logs():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import accepts
         from middlewared.schema import Dict, Str
 
@@ -26,7 +26,7 @@ def test_private_params_do_not_leak_to_logs():
 
 
 def test_private_params_do_not_leak_to_core_get_jobs():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import accepts, job
         from middlewared.schema import Dict, Str
 

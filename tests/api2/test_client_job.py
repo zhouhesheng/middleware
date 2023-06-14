@@ -3,13 +3,13 @@ import time
 
 import pytest
 
-from middlewared.test.integration.utils import client, call, mock, ssh
+from middlewared.test.integration.utils import client, mock
 from auto_config import dev_test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 
 
 def test_client_job_callback():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import job
 
         @job()

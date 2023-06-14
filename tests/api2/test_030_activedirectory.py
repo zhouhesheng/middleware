@@ -1,6 +1,5 @@
 import os
 import ipaddress
-import json
 from time import sleep
 
 import pytest
@@ -9,7 +8,7 @@ from pytest_dependency import depends
 from assets.REST.directory_services import active_directory, override_nameservers
 from assets.REST.pool import dataset
 from auto_config import pool_name, ip, user, password, ha
-from functions import GET, POST, PUT, DELETE, SSH_TEST, cmd_test, make_ws_request, wait_on_job
+from functions import GET, POST, SSH_TEST, make_ws_request
 from protocols import smb_connection, smb_share
 from middlewared.test.integration.assets.privilege import privilege
 from middlewared.test.integration.utils import call, client
@@ -61,6 +60,7 @@ ad_object_list = [
 ]
 
 SMB_NAME = "TestADShare"
+
 
 def remove_dns_entries(payload):
     res = make_ws_request(ip, {
@@ -220,10 +220,7 @@ def test_06_get_activedirectory_started_before_starting_activedirectory(request)
 @pytest.mark.dependency(name="ad_works")
 def test_07_enable_leave_activedirectory(request):
     global domain_users_id
-    with active_directory(AD_DOMAIN, ADUSERNAME, ADPASSWORD,
-        netbiosname=hostname,
-        dns_timeout=15
-    ) as ad:
+    with active_directory(AD_DOMAIN, ADUSERNAME, ADPASSWORD, netbiosname=hostname, dns_timeout=15):
         # Verify that we're not leaking passwords into middleware log
         cmd = f"""grep -R "{ADPASSWORD}" /var/log/middlewared.log"""
         results = SSH_TEST(cmd, user, password, ip)
@@ -238,7 +235,6 @@ def test_07_enable_leave_activedirectory(request):
         results = GET('/activedirectory/started/')
         assert results.status_code == 200, results.text
         assert results.json() is True, results.text
-
 
         # Verify that idmapping is working
         results = POST("/user/get_user_obj/", {'username': AD_USER, 'sid_info': True})
@@ -304,10 +300,7 @@ def test_07_enable_leave_activedirectory(request):
 
 def test_08_activedirectory_smb_ops(request):
     depends(request, ["ad_works"], scope="session")
-    with active_directory(AD_DOMAIN, ADUSERNAME, ADPASSWORD,
-        netbiosname=hostname,
-        dns_timeout=15
-    ) as ad:
+    with active_directory(AD_DOMAIN, ADUSERNAME, ADPASSWORD, netbiosname=hostname, dns_timeout=15):
         with dataset(
             pool_name,
             "ad_smb",
@@ -323,7 +316,7 @@ def test_08_activedirectory_smb_ops(request):
             results = POST("/service/restart/", {"service": "cifs"})
             assert results.status_code == 200, results.text
 
-            with smb_share(ds['mountpoint'], {'name': SMB_NAME}) as share:
+            with smb_share(ds['mountpoint'], {'name': SMB_NAME}):
                 with smb_connection(
                     host=ip,
                     share=SMB_NAME,
@@ -346,19 +339,18 @@ def test_08_activedirectory_smb_ops(request):
 
                     c.rmdir('testdir')
 
-
-        with dataset(
-            pool_name,
-            "ad_datasets",
-            options={'share_type': 'SMB'},
-            acl=[{
+        ds_args = (pool_name, 'ad_datasets',)
+        ds_kwargs = {
+            'options': {'share_type': 'SMB'},
+            'acl': [{
                 'tag': 'GROUP',
                 'id': domain_users_id,
                 'perms': {'BASIC': 'FULL_CONTROL'},
                 'flags': {'BASIC': 'INHERIT'},
                 'type': 'ALLOW'
             }]
-        ) as ds:
+        }
+        with dataset(*ds_args, **ds_kwargs) as ds:
             with smb_share(ds['mountpoint'], {
                 'name': 'DATASETS',
                 'purpose': 'NO_PRESET',
@@ -385,19 +377,7 @@ def test_08_activedirectory_smb_ops(request):
             acl = results.json()
             assert acl['trivial'] is False, str(acl)
 
-
-        with dataset(
-            pool_name,
-            "ad_home",
-            options={'share_type': 'SMB'},
-            acl=[{
-                'tag': 'GROUP',
-                'id': domain_users_id,
-                'perms': {'BASIC': 'FULL_CONTROL'},
-                'flags': {'BASIC': 'INHERIT'},
-                'type': 'ALLOW'
-            }]
-        ) as ds:
+        with dataset(pool_name, 'ad_home', **ds_kwargs) as ds:
             results = POST("/service/restart/", {"service": "cifs"})
             assert results.status_code == 200, results.text
 
@@ -436,10 +416,7 @@ def test_08_activedirectory_smb_ops(request):
 def test_10_account_privilege_authentication(request):
     depends(request, ["ad_works"], scope="session")
 
-    with active_directory(AD_DOMAIN, ADUSERNAME, ADPASSWORD,
-        netbiosname=hostname,
-        dns_timeout=15
-    ):
+    with active_directory(AD_DOMAIN, ADUSERNAME, ADPASSWORD, netbiosname=hostname, dns_timeout=15):
         call("system.general.update", {"ds_auth": True})
         try:
             # RID 513 is constant for "Domain Users"

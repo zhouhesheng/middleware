@@ -12,8 +12,9 @@ pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development 
 
 try:
     from config import BSD_HOST, BSD_USERNAME, BSD_PASSWORD
+    bsd_host_cfg = pytest.mark.skipif(False, reason='')
 except ImportError:
-    pytest.mark.skip(reason='BSD host configuration is missing in ixautomation.conf')
+    bsd_host_cfg = pytest.mark.skipif(True, reason='BSD host configuration is missing in ixautomation.conf')
 
 digit = ''.join(random.choices(string.digits, k=2))
 file_mountpoint = f'/tmp/iscsi-file-{hostname}'

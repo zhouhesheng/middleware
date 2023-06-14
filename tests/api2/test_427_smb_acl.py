@@ -1,7 +1,6 @@
 import contextlib
 import subprocess
 from time import sleep
-import urllib.parse
 
 import pytest
 from pytest_dependency import depends
@@ -234,6 +233,7 @@ def test_005_test_map_modify(request):
 
 def test_006_test_preserve_dynamic_id_mapping(request):
     depends(request, ["SMB_SERVICE_STARTED"], scope="session")
+
     def _find_owner_rights(acl):
         for entry in acl:
             if 'owner rights' in entry['who']:

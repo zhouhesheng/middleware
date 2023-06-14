@@ -2,7 +2,6 @@ import os
 from copy import deepcopy
 
 import pytest
-from pytest_dependency import depends
 
 from functions import POST, PUT, SSH_TEST, wait_on_job
 from auto_config import dev_test, pool_name, ip, user, password

@@ -1,7 +1,6 @@
 import time
 
 import pytest
-from pytest_dependency import depends
 
 from middlewared.test.integration.utils import call, mock
 from functions import POST, GET, PUT, wait_on_job

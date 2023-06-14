@@ -1,7 +1,7 @@
 import pytest
 from pytest_dependency import depends
 
-from functions import PUT, GET, RC_TEST, DELETE, POST, SSH_TEST
+from functions import PUT, GET, DELETE, POST, SSH_TEST
 from auto_config import ip, user, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')

@@ -1,7 +1,6 @@
 from time import sleep
 
 import pytest
-from pytest_dependency import depends
 
 from functions import POST, PUT, SSH_TEST, GET, DELETE
 from auto_config import user, password, ip, dev_test

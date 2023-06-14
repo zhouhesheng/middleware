@@ -1,12 +1,11 @@
 import contextlib
-import ipaddress
 import socket
 
 import pytest
 
 from middlewared.test.integration.assets.iscsi import target_login_test
 from middlewared.test.integration.assets.pool import dataset
-from middlewared.test.integration.utils import call, ssh
+from middlewared.test.integration.utils import call
 from auto_config import ip
 
 
@@ -14,14 +13,15 @@ def my_ip4(ipaddr=ip, port=80):
     """See which of my IP addresses will be used to connect."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(2)
-    result = sock.connect_ex((ipaddr,port))
+    result = sock.connect_ex((ipaddr, port))
     assert result == 0
     myip = sock.getsockname()[0]
     sock.close()
     # Check that we have an IPv4 address
     socket.inet_pton(socket.AF_INET, myip)
     return myip
-    
+
+
 @contextlib.contextmanager
 def portal():
     portal_config = call('iscsi.portal.create', {'listen': [{'ip': ip}], 'discovery_authmethod': 'NONE'})
@@ -81,7 +81,7 @@ def configured_target_to_extent():
                     'initiator': initiator_config['id'],
                     'auth': None,
                     'authmethod': 'NONE'
-                    }]
+                }]
             ) as target_config:
                 with extent('test_extent') as extent_config:
                     with target_extent(target_config['id'], extent_config['id'], 1):
@@ -118,6 +118,7 @@ def test_iscsi_auth_networks(valid):
             f'{config["global"]["basename"]}:{config["target"]["name"]}',
         ) is valid
 
+
 @pytest.mark.parametrize('valid', [True, False])
 def test_iscsi_auth_networks_exact_ip(valid):
     myip = my_ip4()
@@ -132,6 +133,7 @@ def test_iscsi_auth_networks_exact_ip(valid):
             f'{portal_listen_details["ip"]}:{portal_listen_details["port"]}',
             f'{config["global"]["basename"]}:{config["target"]["name"]}',
         ) is valid
+
 
 @pytest.mark.parametrize('valid', [True, False])
 def test_iscsi_auth_networks_netmask_24(valid):
@@ -153,6 +155,7 @@ def test_iscsi_auth_networks_netmask_24(valid):
             f'{config["global"]["basename"]}:{config["target"]["name"]}',
         ) is valid
 
+
 @pytest.mark.parametrize('valid', [True, False])
 def test_iscsi_auth_networks_netmask_16(valid):
     myip = my_ip4()
@@ -160,9 +163,9 @@ def test_iscsi_auth_networks_netmask_16(valid):
     n = (int(myip.split('.')[2]) + 1) % 256
     good_ip = '.'.join(myip.split('.')[:2] + [str(n), '0'])
     # bad_ip will be the good_ip with the second byte changed
-    l = good_ip.split('.')
-    n = (int(l[1]) + 1) % 256
-    bad_ip = '.'.join([l[0], str(n)] + l[-2:])
+    parts = good_ip.split('.')
+    n = (int(parts[1]) + 1) % 256
+    bad_ip = '.'.join([parts[0], str(n)] + parts[-2:])
     with configure_iscsi_service() as config:
         call(
             'iscsi.target.update',

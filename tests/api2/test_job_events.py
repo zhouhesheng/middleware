@@ -9,7 +9,7 @@ pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development 
 
 
 def test_successful_job_events():
-    with mock("test.test1", """    
+    with mock("test.test1", """
         from middlewared.service import job
 
         @job()

@@ -1,5 +1,4 @@
 import pytest
-from pytest_dependency import depends
 
 from middlewared.client import ClientException
 from middlewared.test.integration.utils import call, mock

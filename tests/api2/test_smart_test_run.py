@@ -1,10 +1,7 @@
-import contextlib
-import re
 import time
 
 import pytest
 
-from middlewared.service_exception import ValidationErrors
 from middlewared.test.integration.utils import call, client, mock
 
 
@@ -22,7 +19,7 @@ def short_test():
                         else:
                             result = {"current_test": {"progress": i}}
                             i += 30
-                            return result 
+                            return result
             """):
                 result = call("smart.test.manual_test", [{"identifier": disk["identifier"], "type": "SHORT"}])
                 yield result[0]
