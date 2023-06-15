@@ -1,5 +1,13 @@
+import os
+import sys
+
 import pytest
 
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from assets.REST.pool import dataset
 from assets.REST.snapshot import snapshot
 from auto_config import dev_test, pool_name

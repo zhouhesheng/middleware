@@ -1,10 +1,17 @@
+import os
+import sys
+
 import pytest
 
 from functions import SSH_TEST
 from auto_config import hostname, ip
-from assets.REST.directory_services import active_directory, ldap, override_nameservers
 from middlewared.test.integration.utils import call
-
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
+from assets.REST.directory_services import active_directory, ldap, override_nameservers
 try:
     from config import AD_DOMAIN, ADPASSWORD, ADUSERNAME, ADNameServer
 except ImportError:

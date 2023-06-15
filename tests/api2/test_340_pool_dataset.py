@@ -1,12 +1,19 @@
+import os
+import sys
+
 import pytest
 from pytest_dependency import depends
 
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from assets.REST.pool import dataset as create_dataset
 from functions import DELETE, GET, POST, PUT, SSH_TEST, wait_on_job, make_ws_request
 from auto_config import dev_test, ip, pool_name, user, password
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
-
 dataset = f'{pool_name}/dataset1'
 dataset_url = dataset.replace('/', '%2F')
 zvol = f'{pool_name}/zvol1'

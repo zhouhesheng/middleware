@@ -1,4 +1,5 @@
 import os
+import sys
 import enum
 from time import sleep
 from base64 import b64decode, b64encode
@@ -6,15 +7,18 @@ from base64 import b64decode, b64encode
 import pytest
 from pytest_dependency import depends
 
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from auto_config import ip, pool_name, dev_test, user, password
 from assets.REST.pool import dataset as create_dataset
 from functions import PUT, POST, GET, DELETE, SSH_TEST
 from protocols import SMB, smb_connection, smb_share
-from samba import ntstatus
-from samba import NTSTATUSError
+from samba import ntstatus, NTSTATUSError
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
-
 
 dataset = f"{pool_name}/smb-proto"
 dataset_url = dataset.replace('/', '%2F')

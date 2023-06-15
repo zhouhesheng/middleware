@@ -1,15 +1,23 @@
 from contextlib import contextmanager
+import os
+import sys
 
 import pytest
 from pytest_dependency import depends
 
-from assets.REST.directory_services import active_directory, ldap, override_nameservers
-from assets.REST.pool import dataset
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from auto_config import dev_test, ip, hostname, password, pool_name, user, ha
 from functions import GET, POST, PUT, SSH_TEST, make_ws_request, wait_on_job
 from protocols import nfs_share, SSH_NFS
 from middlewared.test.integration.utils import call
-
+from middlewared.test.integration.assets.REST.pool import dataset
+from middlewared.test.integration.assets.REST.directory_services import (
+    active_directory, ldap, override_nameservers
+)
 try:
     from config import AD_DOMAIN, ADPASSWORD, ADUSERNAME, ADNameServer
 except ImportError:

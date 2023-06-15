@@ -1,18 +1,23 @@
 import os
+import sys
 import ipaddress
 from time import sleep
 
 import pytest
 from pytest_dependency import depends
 
-from assets.REST.directory_services import active_directory, override_nameservers
-from assets.REST.pool import dataset
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from auto_config import pool_name, ip, user, password, ha
 from functions import GET, POST, SSH_TEST, make_ws_request
 from protocols import smb_connection, smb_share
 from middlewared.test.integration.assets.privilege import privilege
 from middlewared.test.integration.utils import call, client
-
+from assets.REST.directory_services import active_directory, override_nameservers
+from assets.REST.pool import dataset
 if ha and "hostname_virtual" in os.environ:
     hostname = os.environ["hostname_virtual"]
 else:

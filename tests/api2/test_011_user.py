@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 import stat
 from contextlib import contextmanager
@@ -7,6 +8,11 @@ from contextlib import contextmanager
 import pytest
 from pytest_dependency import depends
 
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from assets.REST.pool import dataset as tmp_dataset
 from functions import POST, GET, DELETE, PUT, SSH_TEST, wait_on_job
 from auto_config import pool_name, ha, password, user, ip

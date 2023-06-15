@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import contextlib
 import copy
@@ -11,14 +12,16 @@ from types import SimpleNamespace
 import pytest
 from pytest_dependency import depends
 
-from assets.REST.pool import dataset as ftp_dataset
-from functions import SSH_TEST
-from functions import make_ws_request, send_file
-from auto_config import pool_name, ha
-from auto_config import dev_test, password, user
-from protocols import ftp_connect, ftp_connection
-from protocols import ftps_connection
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
+from functions import SSH_TEST, make_ws_request, send_file
+from auto_config import pool_name, ha, dev_test, password, user
+from protocols import ftps_connection, ftp_connect, ftp_connection
 from middlewared.test.integration.assets.account import user as ftp_user
+from middlewared.test.integration.assets.REST.pool import dataset as ftp_dataset
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
 

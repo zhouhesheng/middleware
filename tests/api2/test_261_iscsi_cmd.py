@@ -1,6 +1,7 @@
 import contextlib
 import enum
 import os
+import sys
 import random
 import socket
 import string
@@ -12,12 +13,16 @@ import pytest
 from pyscsi.pyscsi.scsi_sense import sense_ascq_dict
 from pytest_dependency import depends
 
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from auto_config import dev_test, ha, hostname, isns_ip, pool_name
 from functions import DELETE, GET, POST, PUT
 from protocols import initiator_name_supported, iscsi_scsi_connection, isns_connection
-from assets.REST.pool import dataset
 from assets.REST.snapshot import snapshot, snapshot_rollback
-
+from assets.REST.pool import dataset
 if ha and "virtual_ip" in os.environ:
     ip = os.environ["virtual_ip"]
     controller1_ip = os.environ['controller1_ip']

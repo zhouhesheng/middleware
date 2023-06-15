@@ -1,10 +1,16 @@
+import os
+import sys
 from base64 import b64decode
 import json
 from time import sleep
 
 import pytest
 from pytest_dependency import depends
-
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from functions import PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
 from assets.REST.directory_services import active_directory, override_nameservers
 from auto_config import dev_test, ip, hostname, password, user

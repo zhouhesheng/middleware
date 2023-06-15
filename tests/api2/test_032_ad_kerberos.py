@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 from calendar import timegm
 from contextlib import contextmanager
@@ -6,12 +8,16 @@ from base64 import b64decode
 import pytest
 from pytest_dependency import depends
 
-from assets.REST.directory_services import active_directory
-from assets.REST.pool import dataset
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from functions import make_ws_request, PUT, POST, GET, DELETE, SSH_TEST, wait_on_job
 from auto_config import pool_name, ip, hostname, password, user
 from protocols import nfs_share
-
+from assets.REST.directory_services import active_directory
+from assets.REST.pool import dataset
 try:
     from config import AD_DOMAIN, ADPASSWORD, ADUSERNAME, ADNameServer
 except ImportError:

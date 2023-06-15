@@ -1,10 +1,17 @@
+import os
+import sys
+
 import pytest
 from pytest_dependency import depends
 
+# TODO: we alreay have an assets module in middlewared.test.integration
+# so move this there to prevent the sys.path alteration nonsense.
+# This has to be done because the local assets directory isn't in python
+# PATH since these tests aren't installed as a python "package"
+sys.path.append(os.getcwd())
 from assets.REST.pool import dataset
 from middlewared.test.integration.assets.smb import smb_share
-from functions import PUT, POST, SSH_TEST
-from functions import make_ws_request, wait_on_job
+from functions import PUT, POST, SSH_TEST, make_ws_request, wait_on_job
 from auto_config import pool_name, user, password, ip, dev_test
 # comment pytestmark for development testing with --dev-test
 pytestmark = pytest.mark.skipif(dev_test, reason='Skipping for test development testing')
