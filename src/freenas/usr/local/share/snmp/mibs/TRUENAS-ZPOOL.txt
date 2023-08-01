@@ -1,0 +1,184 @@
+TRUENAS-ZPOOL-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+	MODULE-IDENTITY, OBJECT-TYPE, enterprises, Integer32, Counter64 FROM SNMPv2-SMI
+	DisplayString FROM SNMPv2-TC
+	OBJECT-GROUP, MODULE-COMPLIANCE FROM SNMPv2-CONF;
+
+iXsystems MODULE-IDENTITY
+	LAST-UPDATED "202308010000Z"  -- August 1, 2023
+	ORGANIZATION "www.ixsystems.com"
+	CONTACT-INFO
+		"postal:   2490 Kruse Dr
+			   San Jose, CA 95131
+		email:    support@iXsystems.com"
+	DESCRIPTION
+		"The MIB file contains definitions for Zpools on the
+		iXsystems ZFS storage appliance (TrueNAS SCALE)."
+
+    -- revision history
+
+	REVISION     "202308010000Z"  -- August 1, 2023
+	DESCRIPTION  "Initial MIB file generation for Cobia"
+	::= { enterprises 50536 }
+
+theSystem	OBJECT IDENTIFIER ::= { iXsystems 1 }
+zpoolMeta	OBJECT IDENTIFIER ::= { theSystem 1 }
+
+zpoolObjects	OBJECT-GROUP
+		OBJECTS {
+		  zpoolName,
+		  zpoolHealth,
+		  zpoolReadOps,
+		  zpoolWriteOps,
+		  zpoolReadBytes,
+		  zpoolWriteBytes,
+		  zpoolReadOps1sec,
+		  zpoolWriteOps1sec,
+		  zpoolReadBytes1sec,
+		  zpoolWriteBytes1sec
+		}
+		STATUS	current
+		DESCRIPTION
+		  "A collection of objects providing support for
+		  the zpool MIBs."
+		::= { zpoolMeta 1 }
+
+zpoolCompliance	MODULE-COMPLIANCE
+		STATUS	current
+		DESCRIPTION  "Compliance!"
+		MODULE
+		MANDATORY-GROUPS {
+		  zpoolObjects
+		}
+		::= { zpoolMeta 2 }
+
+zpool		OBJECT IDENTIFIER ::= { theSystem 2 }
+
+zpoolTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF ZpoolEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION  "Table of zpool entries"
+    ::= { zpool 1 }
+
+zpoolEntry OBJECT-TYPE
+    SYNTAX     ZpoolEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "A zpool entry"
+    INDEX { zpoolIndex }
+    ::= { zpoolTable 1 }
+
+ZpoolEntry ::= SEQUENCE {
+        zpoolIndex                    Integer32,
+        zpoolName                     DisplayString,
+        zpoolHealth                   DisplayString,
+        zpoolReadOps                  Counter64,
+        zpoolWriteOps                 Counter64,
+        zpoolReadBytes                Counter64,
+        zpoolWriteBytes               Counter64,
+        zpoolReadOps1sec              Counter64,
+        zpoolWriteOps1sec             Counter64,
+        zpoolReadBytes1sec            Counter64,
+        zpoolWriteBytes1sec           Counter64
+    }
+
+zpoolIndex OBJECT-TYPE
+    SYNTAX     Integer32 (1..2147483647)
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION  "zpool table index"
+    ::= { zpoolEntry 1 }
+
+zpoolName OBJECT-TYPE
+    SYNTAX     DisplayString
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The name of the zpool"
+    ::= { zpoolEntry 2 }
+
+zpoolHealth OBJECT-TYPE
+    SYNTAX     DisplayString
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The health of the zpool"
+    ::= { zpoolEntry 3 }
+
+zpoolReadOps OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The number of read I/O operations sent to the pool or device,
+        including metadata requests (averaged since system booted)."
+    ::= { zpoolEntry 4 }
+
+zpoolWriteOps OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The number of write I/O operations sent to the pool or device
+        (averaged since system booted)."
+    ::= { zpoolEntry 5 }
+
+zpoolReadBytes OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The bandwidth of all read operations (including metadata),
+        expressed as units per second (averaged since system booted)"
+    ::= { zpoolEntry 6 }
+
+zpoolWriteBytes OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The bandwidth of all write operations, expressed as units per
+        second (averaged since system booted)."
+    ::= { zpoolEntry 7 }
+
+zpoolReadOps1sec OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The number of read I/O operations sent to the pool or device,
+        including metadata requests (over 1 second interval)."
+    ::= { zpoolEntry 8 }
+
+zpoolWriteOps1sec OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The number of write I/O operations sent to the pool or device
+        (over 1 second interval)."
+    ::= { zpoolEntry 9 }
+
+zpoolReadBytes1sec OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The bandwidth of all read operations (including metadata),
+        expressed as units per second (over 1 second interval)"
+    ::= { zpoolEntry 10 }
+
+zpoolWriteBytes1sec OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The bandwidth of all write operations, expressed as units per
+        second (over 1 second interval)."
+    ::= { zpoolEntry 11 }
+
+
+END

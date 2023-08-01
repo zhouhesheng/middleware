@@ -1,0 +1,123 @@
+TEMPORARY-RESEARCH-MIB DEFINITIONS ::= BEGIN
+
+
+IMPORTS
+                      MODULE-IDENTITY, OBJECT-TYPE, enterprises, Integer32, NOTIFICATION-TYPE FROM SNMPv2-SMI
+                      OBJECT-GROUP, NOTIFICATION-GROUP, MODULE-COMPLIANCE FROM SNMPv2-CONF;
+
+
+exampleCorp           MODULE-IDENTITY
+                      LAST-UPDATED "202111241500Z"
+                      ORGANIZATION
+                         "Example corp ltd"
+                      CONTACT-INFO
+                        "Example corp address"
+                      DESCRIPTION
+                        "This MIB file contains definitions for the
+                         Example corps next coolest product!"
+                      REVISION "202111241500Z"
+                      DESCRIPTION
+                        "MIB file created"
+                      ::= { enterprises 55555 }
+
+
+theSystem             OBJECT IDENTIFIER ::= { exampleCorp 10 }
+mibMeta               OBJECT IDENTIFIER ::= { theSystem 1 }
+productTypeOne        OBJECT IDENTIFIER ::= { theSystem 2 }      
+
+
+productObjects        OBJECT-GROUP
+                      OBJECTS {
+                        devTempAlarm,
+                        devVoltAlarm
+                      }
+                      STATUS  current
+                      DESCRIPTION
+                        "A collection of objects providing support for
+                         the system MIB."
+                      ::= { mibMeta 1 }
+
+productNotifications  NOTIFICATION-GROUP
+                      NOTIFICATIONS {
+                        problemsTrap
+                      }
+                      STATUS  current
+                      DESCRIPTION
+                      "A collection of notifications providing support for
+                       the system MIB."
+                      ::= { mibMeta 2 }
+
+productCompliances    MODULE-COMPLIANCE
+                      STATUS     current
+                      DESCRIPTION
+                        "Compliance statement for the the entities in this (theSystem) MIB."
+                      MODULE
+                      MANDATORY-GROUPS {
+                        productObjects,
+                        productNotifications
+                      }
+                      ::= { mibMeta 3 }
+
+-- Traps parent need to be always SOMEOID.0.
+-- Ie, the zero is important.
+trapsOne              OBJECT IDENTIFIER ::= { productTypeOne 0 }
+
+problemsTrap          NOTIFICATION-TYPE
+                      STATUS  current
+                      DESCRIPTION
+                        "This trap is send automatically if problems are detected."
+                      ::= { trapsOne 1 }
+
+trapDataTable         OBJECT-TYPE
+                      SYNTAX  SEQUENCE OF DevEntry
+                      MAX-ACCESS  not-accessible
+                      STATUS  current
+                      DESCRIPTION
+                        "The table of Devices."
+                      ::= { productTypeOne 1 }
+
+trapDataTableEntry    OBJECT-TYPE
+                      SYNTAX  DevEntry
+                      MAX-ACCESS  not-accessible
+                      STATUS  current
+                      DESCRIPTION
+                        "The entry to show a row of device information."
+                      INDEX { devIndex }
+                      ::= { trapDataTable 1 }
+
+DevEntry              ::= SEQUENCE {
+                        devIndex      Integer32,
+                        devTempAlarm  Integer32,
+                        devVoltAlarm  Integer32
+                      }
+
+devIndex              OBJECT-TYPE
+                      SYNTAX  Integer32(1..5)
+                      MAX-ACCESS  not-accessible
+                      STATUS  current
+                      DESCRIPTION
+                        "A unique value to index the device."
+                      ::= { trapDataTableEntry  1 }
+
+devTempAlarm          OBJECT-TYPE
+                      SYNTAX  Integer32(0..1)
+                      MAX-ACCESS  read-only
+                      STATUS  current
+                      DESCRIPTION
+                        "The state of the device temperature alarm:
+                         0 = Alarm OFF,
+                         1 = Alarm ON"
+                     ::= { trapDataTableEntry  2 }
+
+devVoltAlarm         OBJECT-TYPE
+                     SYNTAX  Integer32(0..1)
+                     MAX-ACCESS  read-only
+                     STATUS  current
+                     DESCRIPTION
+                       "The state of the device voltage alarm:
+                        0 = Alarm OFF,
+                        1 = Alarm ON"
+                    ::= { trapDataTableEntry  3 }
+
+
+END
