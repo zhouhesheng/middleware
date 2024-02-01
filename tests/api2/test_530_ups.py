@@ -7,6 +7,7 @@ import sys
 apifolder = os.getcwd()
 sys.path.append(apifolder)
 from functions import GET, PUT, POST
+from middlewared.test.integration.utils import call
 
 first_ups_list = [
     'rmonitor',
@@ -71,11 +72,7 @@ def test_05_look_at_UPS_options_output_of_(data):
 
 
 def test_06_starting_ups_service():
-    payload = {
-        "service": "ups",
-    }
-    results = POST('/service/start/', payload)
-    assert results.status_code == 200, results.text
+    assert call('service.start', 'ups') is True
 
 
 def test_07_look_UPS_service_status_is_running():
