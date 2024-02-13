@@ -149,7 +149,7 @@ def casefold(obj):
 
 class filters(object):
     def op_in(x, y):
-        return operator.contains(y, x)
+        return operator.contains(x, y)
 
     def op_rin(x, y):
         if x is None:
@@ -161,7 +161,7 @@ class filters(object):
         if x is None:
             return False
 
-        return not operator.contains(y, x)
+        return not operator.contains(x, y)
 
     def op_rnin(x, y):
         if x is None:
@@ -197,21 +197,21 @@ class filters(object):
         return not x.endswith(y)
 
     opmap = {
-        '=': operator.eq,
-        '!=': operator.ne,
-        '>': operator.gt,
-        '>=': operator.ge,
-        '<': operator.lt,
-        '<=': operator.le,
-        '~': op_re,
-        'in': op_in,
-        'nin': op_nin,
-        'rin': op_rin,
-        'rnin': op_rnin,
-        '^': op_startswith,
-        '!^': op_notstartswith,
-        '$': op_endswith,
-        '!$': op_notendswith,
+        '=': (operator.eq, False),
+        '!=': (operator.ne, False),
+        '>': (operator.gt, False),
+        '>=': (operator.ge, False),
+        '<': (operator.lt, False),
+        '<=': (operator.le, False),
+        '~': (op_re, False),
+        'in': (op_in, True),
+        'nin': (op_nin, True),
+        'rin': (op_rin, False),
+        'rnin': (op_rnin, False),
+        '^': (op_startswith, False),
+        '!^': (op_notstartswith, False),
+        '$': (op_endswith, False),
+        '!$': (op_notendswith, False),
     }
 
     def validate_filters(self, filters, recursion_depth=0, value_maps=None):
@@ -331,16 +331,25 @@ class filters(object):
 
         return (options, select, order_by)
 
+    def get_opmap(self, op):
+        if op[0] == 'C':
+            return (True, *self.opmap[op[1:]])
+
+        return (False, *self.opmap[op])
+
     def filterop(self, i, f, source_getter):
         name, op, value = f
-        source = source_getter(i, name)
+        casefolded, fn, args_reversed = self.get_opmap(op)
 
-        if op[0] == 'C':
-            fn = self.opmap[op[1:]]
+        if args_reversed:
+            source = source_getter(i, value)
+            value = name
+        else:
+            source = source_getter(i, name)
+
+        if casefolded:
             source = casefold(source)
             value = casefold(value)
-        else:
-            fn = self.opmap[op]
 
         if fn(source, value):
             return True
