@@ -97,7 +97,12 @@ class LicenseStatusAlertSource(ThreadedAlertSource):
                 if name == 'ES60':
                     continue
 
-                if enc_nums[name] != quantity:
+                if name not in enc_nums:
+                    alerts.append(Alert(
+                        LicenseAlertClass,
+                        ('This system is not licensed for expansion shelf %(name)s.' % {'name': name})
+                    ))
+                elif enc_nums[name] != quantity:
                     alerts.append(Alert(
                         LicenseAlertClass,
                         (
