@@ -1,7 +1,4 @@
-# -*- coding=utf-8 -*-
 import pytest
-import secrets
-import string
 
 from middlewared.service_exception import ValidationErrors
 from middlewared.test.integration.assets.account import user
@@ -10,10 +7,7 @@ from middlewared.test.integration.assets.smb import smb_share
 from middlewared.test.integration.utils import call
 
 
-PASSWD = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(10))
-
-
-def test__smb_simple_share_validation():
+def test_smb_simple_share_validation():
     assert call('user.query', [['smb', '=', True]], {'count': True}) == 0
 
     with pytest.raises(ValidationErrors):
@@ -23,7 +17,7 @@ def test__smb_simple_share_validation():
         "username": "simple_share_user",
         "full_name": "simple_share_user",
         "group_create": True,
-        "password": PASSWD,
+        "password": "temppasswd",
         "smb": True,
     }):
         # First check that basic call of this endpoint succeeds

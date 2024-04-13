@@ -587,20 +587,26 @@ def test_043_raise_validation_error_on_homedir_collision(request):
         )
 
 
-@pytest.mark.parametrize('username', [UserAssets.TestUser02['create_payload']['username']])
-def test_046_delete_homedir_user(username, request):
-    depends(request, [UserAssets.TestUser02['depends_name']], scope='session')
-    # delete user first
-    assert call(
-        'user.delete',
-        UserAssets.TestUser02['query_response']['id']
+@pytest.mark.parametrize(
+    'username',
+    [
+        UserAssets.TestUser02['create_payload']['username'],
+        UserAssets.ShareUser01['create_payload']['username'],
+    ],
+)
+def test_046_cleanup_user(username, request):
+    depends(request,
+        [
+            UserAssets.ShareUser01['depends_name'],
+            UserAssets.TestUser02['depends_name']
+        ],
+        scope='session'
     )
-
-    # now clean-up dataset that was used as homedir
-    assert call(
-        'pool.dataset.delete',
-        UserAssets.TestUser02['create_payload']['home'].removeprefix('/mnt/')
-    )
+    qry = call('user.query', [['username', '=', username]])
+    assert call('user.delete', qry['id'])
+    if qry['home'].startswith('/mnt/'):
+        # now clean-up dataset that was used as homedir
+        assert call('pool.dataset.delete', qry['home'].removeprefix('/mnt/'))
 
 
 def test_050_verify_no_builtin_smb_users(request):
