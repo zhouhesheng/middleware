@@ -634,8 +634,7 @@ class ActiveDirectoryService(ConfigService):
         await spn_job.wait()
 
         job.set_progress(70, 'Storing computer account keytab.')
-        if not await self.middleware.call('kerberos.keytab.store_samba_keytab'):
-            raise CallError("Failed to store machine account keytab")
+        await self.middleware.call('kerberos.keytab.store_ad_keytab')
 
     async def __start(self, job):
         """
@@ -723,6 +722,7 @@ class ActiveDirectoryService(ConfigService):
         """
 
         job.set_progress(40, 'Performing testjoin to Active Directory Domain')
+        machine_acct = f'{ad["netbiosname"].upper()}$@{ad["domainname"]}'
         ret = await self._net_ads_testjoin(workgroup, ad)
         if ret == neterr.NOTJOINED:
             job.set_progress(50, 'Joining Active Directory Domain')
@@ -741,7 +741,6 @@ class ActiveDirectoryService(ConfigService):
                 await self._net_ads_leave({'username': ad['bindname']})
                 raise
 
-            machine_acct = f'{ad["netbiosname"].upper()}$@{ad["domainname"]}'
             await self.middleware.call('datastore.update', self._config.datastore, ad['id'], {
                 'kerberos_principal': machine_acct
             }, {'prefix': 'ad_'})
@@ -782,19 +781,16 @@ class ActiveDirectoryService(ConfigService):
             await self.middleware.call("directoryservices.secrets.backup")
             ret = neterr.JOINED
         elif ret == neterr.JOINED:
+            # We are already joined to AD. User may have disabled then re-renabled the plugin
+            # Check whether we have valid kerberos principal
             if not ad['kerberos_principal']:
-                await self.middleware.call(
-                    'datastore.update', self._config.datastore, ad['id'],
-                    {'enable': False},
-                    {'prefix': 'ad_'}
-                )
-                self.logger.warning('Disabling active directory service due to missing kerberos principal.')
-                await self.set_state(DSStatus['DISABLED'].name)
-                raise CallError(
-                    'TrueNAS server is joined to activedirectory (possibly through '
-                    'commands issued outside of public APIs) while lacking a configured kerberos '
-                    'principal, which is required maintain a stable domain connection. Disabling service.'
-                )
+                if not await self.middleware.call('kerberos.keytab.query', [['AD_MACHINE_ACCOUNT']]):
+                    # Force writing of keytab based on stored secrets to our config file.
+                    await self.middleware.call('activedirectory.check_machine_account_keytab', ad['domainname'])
+
+                await self.middleware.call('datastore.update', self._config.datastore, ad['id'], {
+                    'kerberos_principal': machine_acct
+                }, {'prefix': 'ad_'})
 
         await self.middleware.call('etc.generate', 'smb')
         await self.middleware.call('service.restart', 'idmap')
