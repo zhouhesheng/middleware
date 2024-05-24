@@ -11,9 +11,85 @@ import os
 import subprocess
 import time
 
-from .constants import krb_tkt_flag
+from .constants import krb_tkt_flag, KRB_ETYPE
 from middlewared.utils import filter_list
 from tempfile import NamedTemporaryFile
+
+# See lib/krb5/keytab/kt_file.c in MIT kerberos source
+KRB5_KT_VNO = b'\x05\x02'  # KRB v5 keytab version 2, (last changed in 2009)
+
+# The following schemas are used for validation of klist / ktutil_list output
+KLIST_ENTRY_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'issued': {'type': 'integer'},
+        'expires': {'type': 'integer'},
+        'renew_until': {'type': 'integer'},
+        'client': {'type': 'string'},
+        'server': {'type': 'string'},
+        'etype': {'type': 'string'},
+        'flags': {
+            'type': 'array',
+            'items': {
+                'type': 'string',
+                'enum': [k.name for k in krb_tkt_flag],
+                'uniqueItems': True
+            }
+        }
+    },
+    'required': [
+        'issued', 'expires', 'renew_until',
+        'client', 'server', 'etype', 'flags'
+    ],
+    'additionalProperties': False
+}
+
+KLIST_OUTPUT_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'default_principal': {'type': 'string'},
+        'ticket_cache': {
+            'type': 'object',
+            'properties': {
+                'type': {'type': 'string'},
+                'name': {'type': 'string'}
+            },
+            'required': ['type', 'name']
+        },
+        'tickets': {
+            'type': 'array',
+            'items': KLIST_ENTRY_SCHEMA,
+            'uniqueItems': True
+        },
+    },
+    'required': ['default_principal', 'ticket_cache', 'tickets']
+}
+
+KTUTIL_LIST_ENTRY_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'slot': {'type': 'integer'},
+        'kvno': {'type': 'integer'},
+        'principal': {'type': 'string'},
+        'etype': {
+            'type': 'string',
+            'enum': [k.value for k in KRB_ETYPE],
+            'uniqueItems': True
+        },
+        'etype_deprecated': {'type': 'boolean'},
+        'date': {'type': 'integer'},
+    },
+    'required': [
+        'slot', 'kvno', 'etype', 'etype_deprecated', 'date'
+    ],
+    'additionalProperties': False
+}
+
+KTUTIL_LIST_OUTPUT_SCHEMA = {
+    'type': 'array',
+    'items': KTUTIL_LIST_ENTRY_SCHEMA,
+    'uniqueItems': True
+}
 
 
 def __tmp_krb5_keytab() -> str:
@@ -21,10 +97,12 @@ def __tmp_krb5_keytab() -> str:
     Create a temporary keytab file with appropriate header
     """
     tmpfile = NamedTemporaryFile(delete=False)
-    tmpfile.write(b'\x05\x02')
-    tmpfile.flush()
-    tmpfile.close()
-    return tmpfile.name
+    with NamedTemporaryFile(delete=False) as tmpfile:
+        tmpfile.write(KRB5_KT_VNO)
+        tmpfile.flush()
+        tmpfile.close()
+
+        return tmpfile.name
 
 
 def parse_klist_output(klistbuf: str) -> list:
@@ -129,7 +207,10 @@ def ktutil_list_impl(keytab_file: str) -> list:
 
     `keytab_file` - path to kerberos keytab
     """
-    kt_output = subprocess.run(['klist', '-ket', keytab_file], capture_output=True)
+    kt_output = subprocess.run(
+        ['klist', '-ket', keytab_file],
+        capture_output=True
+    )
 
     kt_lines = kt_output.stdout.decode().splitlines()
     if len(kt_lines) < 4:

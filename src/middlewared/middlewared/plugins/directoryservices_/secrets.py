@@ -5,7 +5,6 @@ import struct
 from base64 import b64encode, b64decode
 from middlewared.service import Service
 from middlewared.service_exception import MatchNotFound
-from middlewared.plugins.tdb.utils import TDBError
 
 SECRETS_FILE = '/var/db/system/samba4/private/secrets.tdb'
 

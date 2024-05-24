@@ -200,12 +200,12 @@ def test_02_kerberos_keytab_and_realm(do_ad_connection):
     assert orig_kt_len != 0, res['result']
 
     """
-    kerberos._klist_test performs a platform-independent verification
+    kerberos.check_ticket performs a platform-independent verification
     of kerberos ticket.
     """
     res = make_ws_request(ip, {
         'msg': 'method',
-        'method': 'kerberos._klist_test',
+        'method': 'kerberos.check_ticket',
         'params': [],
     })
     error = res.get('error')

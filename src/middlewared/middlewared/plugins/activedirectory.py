@@ -4,13 +4,12 @@ import errno
 import json
 import ipaddress
 import os
-import time
 import contextlib
 
 from middlewared.plugins.smb import SMBCmd, SMBPath
 from middlewared.plugins.kerberos import krb5ccache
 from middlewared.schema import (
-    accepts, Bool, Dict, Int, IPAddr, LDAP_DN, List, NetbiosName, Patch, Ref, returns, Str
+    accepts, Bool, Dict, Int, IPAddr, LDAP_DN, List, NetbiosName, Ref, returns, Str
 )
 from middlewared.service import job, private, ConfigService, ValidationError, ValidationErrors
 from middlewared.service_exception import CallError, MatchNotFound
@@ -537,13 +536,18 @@ class ActiveDirectoryService(ConfigService):
                         'to match active directory value of %s', new['domainname'], exc_info=True
                     )
 
-            if not await self.middleware.call('kerberos._klist_test'):
+            if not await self.middleware.call(
+                'kerberos.check_ticket',
+                {'ccache': krb5ccache.SYSTEM.name},
+                False
+            ):
                 await self.middleware.call('kerberos.start')
 
             try:
                 await self.__start(job)
             except Exception:
                 self.logger.error('Failed to start active directory service. Disabling.')
+                await self.set_state(DSStatus['DISABLED'].name)
                 await self.middleware.call(
                     'datastore.update', self._config.datastore, new['id'],
                     {'enable': False}, {'prefix': 'ad_'}
@@ -682,12 +686,17 @@ class ActiveDirectoryService(ConfigService):
                     {'krb_realm': ad['domainname'].upper()}
                 )
 
-            await self.middleware.call('datastore.update', self._config.datastore, ad['id'],
+            await self.middleware.call(
+                'datastore.update', self._config.datastore, ad['id'],
                 {"kerberos_realm": realm_id}, {'prefix': 'ad_'}
             )
             ad = await self.config()
 
-        if not await self.middleware.call('kerberos._klist_test'):
+        if not await self.middleware.call(
+            'kerberos.check_ticket',
+            {'ccache': krb5ccache.SYSTEM.name},
+            False
+        ):
             await self.middleware.call('kerberos.start')
 
         """
@@ -822,8 +831,8 @@ class ActiveDirectoryService(ConfigService):
     async def __stop(self, job, config):
         job.set_progress(0, 'Preparing to stop Active Directory service')
         await self.middleware.call(
-           'datastore.update', self._config.datastore,
-           config['id'], {'ad_enable': False}
+            'datastore.update', self._config.datastore,
+            config['id'], {'ad_enable': False}
         )
 
         await self.set_state(DSStatus['LEAVING'].name)
@@ -839,7 +848,6 @@ class ActiveDirectoryService(ConfigService):
         await self.set_state(DSStatus['DISABLED'].name)
         job.set_progress(60, 'clearing caches.')
         await self.middleware.call('service.stop', 'dscache')
-        smb_ha_mode = await self.middleware.call('smb.reset_smb_ha_mode')
         await self.middleware.call('service.start', 'cifs')
         await self.set_state(DSStatus['DISABLED'].name)
         job.set_progress(100, 'Active Directory stop completed.')
@@ -850,7 +858,11 @@ class ActiveDirectoryService(ConfigService):
         Kinit with user-provided credentials is sufficient to determine
         whether the credentials are good. A testbind here is unnecessary.
         """
-        if await self.middleware.call('kerberos._klist_test'):
+        if await self.middleware.call(
+            'kerberos.check_ticket',
+            {'ccache': krb5ccache.SYSTEM.name},
+            False
+        ):
             # Short-circuit credential validation if we have a valid tgt
             return
 
@@ -1085,8 +1097,6 @@ class ActiveDirectoryService(ConfigService):
         ad = await self.config()
         if not ad['domainname']:
             raise CallError('Active Directory domain name present in configuration.')
-
-        smb_ha_mode = await self.middleware.call('smb.get_smb_ha_mode')
 
         ad['bindname'] = data.get("username", "")
         ad['bindpw'] = data.get("password", "")

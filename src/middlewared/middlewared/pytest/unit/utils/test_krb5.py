@@ -1,4 +1,5 @@
 import base64
+import jsonschema
 import os
 import pytest
 
@@ -26,26 +27,6 @@ def kerberos_data_dir(tmpdir):
     return tmpdir
 
 
-def check_keytab_entry_keys(entry):
-    assert 'principal' in entry
-    assert isinstance(entry['principal'], str)
-
-    assert 'kvno' in entry
-    assert isinstance(entry['kvno'], int)
-
-    assert 'etype' in entry
-    constants.KRB_ETYPE(entry['etype'])
-
-    assert 'etype_deprecated' in entry
-    assert isinstance(entry['etype_deprecated'], bool)
-
-    assert 'date' in entry
-    assert isinstance(entry['date'], int)
-
-    assert 'slot' in entry
-    assert isinstance(entry['slot'], int)
-
-
 def test__ktutil_list_impl(kerberos_data_dir):
     """
     Validate that parser for kerberos keytab works and provides expected entries
@@ -53,10 +34,8 @@ def test__ktutil_list_impl(kerberos_data_dir):
     entries = krb5.ktutil_list_impl(os.path.join(kerberos_data_dir, KEYTAB_NAME))
     assert len(entries) != 0
     slots = []
-    print(entries)
+    jsonschema.validate(entries, krb5.KTUTIL_LIST_OUTPUT_SCHEMA)
     for entry in entries:
-        check_keytab_entry_keys(entry)
-
         assert entry['slot'] not in slots
         slots.append(entry['slot'])
 
@@ -84,8 +63,8 @@ def test__keytab_extraction(kerberos_data_dir):
         f.flush()
 
     entries = krb5.ktutil_list_impl(new_kt_path)
+    jsonschema.validate(entries, krb5.KTUTIL_LIST_OUTPUT_SCHEMA)
     for entry in entries:
-        check_keytab_entry_keys(entry)
         assert entry['etype_deprecated'] is False, str(entry)
 
 
@@ -104,27 +83,15 @@ def test__klist_impl(kerberos_data_dir):
     """
     ccache_path = os.path.join(kerberos_data_dir, CCACHE_NAME)
     klist = krb5.klist_impl(ccache_path)
+    jsonschema.validate(klist, krb5.KLIST_OUTPUT_SCHEMA)
 
-    assert set(klist.keys()) == set(['default_principal', 'ticket_cache', 'tickets'])
-    assert isinstance(klist['default_principal'], str)
     assert klist['default_principal'] == 'TESTWPQIM603V7$@AD02.TN.IXSYSTEMS.NET'
 
-    assert isinstance(klist['ticket_cache'], dict)
     assert klist['ticket_cache'].get('type') == 'FILE'
     assert klist['ticket_cache'].get('name') == ccache_path
 
-    assert isinstance(klist['tickets'], list)
     assert len(klist['tickets']) == 1
 
     tkt = klist['tickets'][0]
-    assert isinstance(tkt, dict)
 
-    assert set(tkt.keys()) == set(['issued', 'expires', 'renew_until', 'client', 'server', 'etype', 'flags'])
-    for key in ('issued', 'expires', 'renew_until'):
-        assert isinstance(tkt[key], int), str({"key": key, "value": tkt[key]})
-
-    for key in ('client', 'server', 'etype'):
-        assert isinstance(tkt[key], str)
-
-    assert isinstance(tkt['flags'], list)
     assert len(tkt['flags']) != 0

@@ -4,11 +4,9 @@ import enum
 import errno
 import io
 import os
-import shutil
-import subprocess
-import contextlib
 import tempfile
 import time
+
 from middlewared.plugins.idmap import DSType
 from middlewared.schema import accepts, returns, Dict, Int, List, Patch, Str, OROperator, Password, Ref, Datetime, Bool
 from middlewared.service import CallError, ConfigService, CRUDService, job, periodic, private, ValidationErrors
@@ -95,25 +93,6 @@ class KerberosService(ConfigService):
         return path_out
 
     @private
-    @accepts(Dict(
-        'kerberos-options',
-        Str('ccache', enum=[x.name for x in krb5ccache], default=krb5ccache.SYSTEM.name),
-        Int('ccache_uid', default=0),
-        register=True
-    ))
-    async def _klist_test(self, data):
-        """
-        Returns false if there is not a TGT or if the TGT has expired.
-        """
-        ccache_path = await self.ccache_path(data)
-
-        klist = await run(['klist', '-s', '-c', ccache_path], check=False)
-        if klist.returncode != 0:
-            return False
-
-        return True
-
-    @private
     def generate_stub_config(self, realm, kdc=None):
         if os.path.exists('/etc/krb5.conf'):
             return
@@ -144,12 +123,26 @@ class KerberosService(ConfigService):
             os.fsync(f.fileno())
 
     @private
+    @accepts(
+        Dict(
+            'kerberos-options',
+            Str('ccache', enum=[x.name for x in krb5ccache], default=krb5ccache.SYSTEM.name),
+            Int('ccache_uid', default=0),
+            register=True,
+        ),
+        Bool('raise_error', default=True)
+    )
     async def check_ticket(self):
-        valid_ticket = await self._klist_test()
-        if not valid_ticket:
+        ccache_path = await self.ccache_path(data)
+
+        klist = await run(['klist', '-s', '-c', ccache_path], check=False)
+        if klist.returncode == 0:
+            return True
+
+        if raise_error:
             raise CallError("Kerberos ticket is required.", errno.ENOKEY)
 
-        return
+        return False
 
     @private
     async def _validate_param_type(self, data):
@@ -461,7 +454,7 @@ class KerberosService(ConfigService):
 
     @private
     async def renew(self):
-        if not await self._klist_test():
+        if not await self.check_ticket({'ccache': krb5ccache.SYSTEM.value}, False):
             self.logger.warning('Kerberos ticket is unavailable. Performing kinit.')
             return await self.start()
 
@@ -502,21 +495,6 @@ class KerberosService(ConfigService):
 
         self.logger.debug('Successfully renewed kerberos TGT')
         return await self.klist()
-
-    @private
-    async def status(self):
-        """
-        Experience in production environments has indicated that klist can hang
-        indefinitely. Fail if we hang for more than 10 seconds. This should force
-        a kdestroy and new attempt to kinit (depending on why we are checking status).
-        _klist_test will return false if there is not a TGT or if the TGT has expired.
-        """
-        try:
-            ret = await asyncio.wait_for(self.middleware.create_task(self._klist_test()), timeout=10.0)
-            return ret
-        except asyncio.TimeoutError:
-            self.logger.debug('kerberos ticket status check timed out after 10 seconds.')
-            return False
 
     @private
     @accepts(Ref('kerberos-options'))
@@ -942,6 +920,7 @@ class KerberosKeytabService(CRUDService):
         method parses the system keytab and inserts as the AD_MACHINE_ACCOUNT keytab.
         """
         if not os.path.exists(KRB_Keytab.SYSTEM.value):
+            self.logger.warning('System keytab is missing. Unable to extract AD machine account keytab.')
             return
 
         ad = self.middleware.call_sync('activedirectory.config')
