@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 KRB5_VALUE_BEGIN = '{'
 KRB5_VALUE_END = '}'
 
-APPDEFAULTS_SUPPORTED_OPTIONS = (i.value[0] for i in KRB_AppDefaults)
-LIBDEFAULTS_SUPPORTED_OPTIONS = (i.value[0] for i in KRB_LibDefaults)
-SUPPORTED_ETYPES = (e.value for e in KRB_ETYPE)
+APPDEFAULTS_SUPPORTED_OPTIONS = set(i.value[0] for i in KRB_AppDefaults)
+LIBDEFAULTS_SUPPORTED_OPTIONS = set(i.value[0] for i in KRB_LibDefaults)
+SUPPORTED_ETYPES = set(e.value for e in KRB_ETYPE)
 
 
 class KRB5ConfSection(Enum):
