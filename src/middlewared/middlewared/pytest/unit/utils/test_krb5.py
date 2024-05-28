@@ -345,7 +345,7 @@ def test__krb5conf_appdefaults():
 def test__write_krb5_conf(kerberos_data_dir):
     kconf = krb5_conf.KRB5Conf()
     kconf.add_realms(REALMS)
-    kconf.add_libdefaults({'default_domain': AD02.TN.IXSYSTEMS.NET})
+    kconf.add_libdefaults({'default_domain': 'AD02.TN.IXSYSTEMS.NET'})
 
     data = kconf.generate()
 
