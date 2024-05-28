@@ -110,8 +110,10 @@ class EtcService(Service):
                 {'method': 'kerberos.config'},
                 {'method': 'kerberos.realm.query'}
             ],
-            {'type': 'py', 'path': 'krb5.conf', 'mode': 0o644},
-            {'type': 'py', 'path': 'krb5.keytab', 'mode': 0o600},
+            'entries': [
+                {'type': 'py', 'path': 'krb5.conf', 'mode': 0o644},
+                {'type': 'py', 'path': 'krb5.keytab', 'mode': 0o600},
+            ]
         },
         'cron': [
             {'type': 'mako', 'path': 'cron.d/middlewared', 'checkpoint': 'pool_import'},

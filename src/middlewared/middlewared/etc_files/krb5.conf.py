@@ -1,11 +1,12 @@
+import logging
+
+from middlewared.utils import filter_list
 from middlewared.utils.directoryservices.krb5_conf import KRB5Conf
 from middlewared.utils.directoryservices.krb5_constants import (
-    KRB_AppDefaults, KRB_LibDefaults, krb5ccache
+    KRB_LibDefaults, krb5ccache
 )
 
-from middlewared.utils.directoryservices import (
-    krb5_conf, krb5_constants
-)
+logger = logging.getLogger(__name__)
 
 
 def generate_krb5_conf(
@@ -20,16 +21,16 @@ def generate_krb5_conf(
 
     appdefaults = {}
     libdefaults = {
-        KRB_LibDefaults.DEFAULT_CC_NAME: 'FILE:' + krb5ccache.SYSTEM.value,
-        KRB_LibDefaults.DNS_LOOKUP_REALM: 'true',
-        KRB_LibDefaults.DNS_LOOKUP_KDC: 'true',
+        str(KRB_LibDefaults.DEFAULT_CCACHE_NAME): 'FILE:' + krb5ccache.SYSTEM.value,
+        str(KRB_LibDefaults.DNS_LOOKUP_REALM): 'true',
+        str(KRB_LibDefaults.DNS_LOOKUP_KDC): 'true',
     }
 
     default_realm = None
 
     match directory_service:
         case 'ACTIVEDIRECTORY':
-            default_realm = filter_list(realms, [['id', '=', ds_config['realm']]])
+            default_realm = filter_list(realms, [['id', '=', ds_config['kerberos_realm']]])
             if not default_realm:
                 logger.error(
                     '%s: no realm configuration found for active directory domain',
@@ -69,10 +70,10 @@ def generate_krb5_conf(
             pass
 
     if default_realm:
-        libdefaults[KRB_LibDefaults.DEFAULT_REALM] = default_realm['realm']
+        libdefaults[str(KRB_LibDefaults.DEFAULT_REALM)] = default_realm['realm']
 
     krbconf.add_libdefaults(libdefaults, krb_config['libdefaults_aux'])
-    krbconf.add_appdefaults(appdefaults, rkb_config['appdefaults_aux'])
+    krbconf.add_appdefaults(appdefaults, krb_config['appdefaults_aux'])
 
     return krbconf.generate()
 

@@ -7,12 +7,14 @@
 # Tests that require access to a KDC are provided as part of API
 # test suite.
 
+import logging
+import os
+
 from copy import deepcopy
 from enum import auto, Enum
-from logging import logger
 from tempfile import NamedTemporaryFile
-from typing import Optional, Union
-from .krb5_constants import  KRB_AppDefaults, KRB_ETYPE, KRB_LibDefaults, KRB_RealmProperty, krb5ccache
+from typing import Optional
+from .krb5_constants import KRB_AppDefaults, KRB_ETYPE, KRB_LibDefaults, KRB_RealmProperty
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ KRB5_VALUE_END = '}'
 
 APPDEFAULTS_SUPPORTED_OPTIONS = (i.value[0] for i in KRB_AppDefaults)
 LIBDEFAULTS_SUPPORTED_OPTIONS = (i.value[0] for i in KRB_LibDefaults)
-SUPPORTED_ETYPES = (e.value for e. in KRB_ETYPE)
+SUPPORTED_ETYPES = (e.value for e in KRB_ETYPE)
 
 
 class KRB5ConfSection(Enum):
@@ -39,6 +41,12 @@ def validate_krb5_parameter(section, param, value):
     the configuration file, then services that depend on kerberos will potentially
     break.
     """
+    if isinstance(value, dict):
+        for k, v in value.items():
+            validate_krb5_parameter(section, k, v)
+
+        return
+
     match section:
         # currently "auxiliary parameters" are only allowed in backend for
         # libdefaults and appdefaults sections of krb5.conf
@@ -114,13 +122,16 @@ def parse_krb_aux_params(
     # ```
 
     for line in aux_params.splitlines():
-        if len((entry := entry.split('='))) < 1:
+        if not line.strip():
+            continue
+
+        if len((entry := line.split('='))) < 1:
             # invalid line, keep legacy truenas behavior and silently skip
             continue
 
         param = entry[0].strip()
 
-        if entry[-1] == KRB5_VALUE_BEGIN:
+        if entry[-1].strip() == KRB5_VALUE_BEGIN:
             # `fubar = {` line, set `fubar` as target so that we properly
             # consolidate values if our defaults are overridden
             if is_subsection:
@@ -131,7 +142,7 @@ def parse_krb_aux_params(
             is_subsection = True
             continue
 
-        elif param == KRB5_VALUE_END
+        elif param == KRB5_VALUE_END:
             # `}` line ending previous
             target = section_conf
             is_subsection = False
@@ -144,9 +155,9 @@ def parse_krb_aux_params(
 
 class KRB5Conf():
     def __init__(self):
-        self.libdefaults = {} # settings used by KRB5 library
-        self.appdefaults = {} # settings used by some KRB5 applications
-        self.realms = [] # realm-specific settings
+        self.libdefaults = {}  # settings used by KRB5 library
+        self.appdefaults = {}  # settings used by some KRB5 applications
+        self.realms = {}  # realm-specific settings
 
     def __add_parameters(self, section: str, config: dict, auxiliary_parameters: Optional[list] = None):
         for param, value in config.items():
@@ -241,7 +252,7 @@ class KRB5Conf():
 
         for prop in (
             KRB_RealmProperty.ADMIN_SERVER.value[0],
-            KRB_RealmProperty.DC.value[0],
+            KRB_RealmProperty.KDC.value[0],
             KRB_RealmProperty.KPASSWD_SERVER.value[0]
         ):
             if prop in realm_info and not isinstance(realm_info[prop], list):
@@ -253,7 +264,6 @@ class KRB5Conf():
             'kdc': realm_info[KRB_RealmProperty.KDC.value[0]].copy(),
             'kpasswd_server': realm_info[KRB_RealmProperty.KPASSWD_SERVER.value[0]].copy(),
         }}
-
 
     def add_realms(self, realms: list) -> None:
         """
@@ -273,22 +283,28 @@ class KRB5Conf():
         NOTE: if admin_server, kdc, or kpasswd_server are unspecified, then they will be
         resolved through DNS.
         """
-        clean_realms = []
+        clean_realms = {}
         for realm in realms:
-            clean_realms.append(__parse_realm(realm))
+            clean_realms.update(self.__parse_realm(realm))
 
         self.realms = clean_realms
 
-    def __dump_a_parameter(self, parm: str, value:):
+    def __dump_a_parameter(self, parm: str, value):
         if isinstance(value, dict):
             out = f'\t{parm} = {KRB5_VALUE_BEGIN}\n'
             for k, v in value.items():
-                out += f'\t\t{k} = {v}\n'
+                if (val := self.__dump_a_parameter(k, v)) is None:
+                    continue
 
-            out += f'\t{KRB5_VALUE_END}'
+                out += f'\t{val}'
+
+            out += f'\t{KRB5_VALUE_END}\n'
             return out
-        elif isinstace(value, list):
-            return f'\t{parm} = {' '.join(value)}\n'
+        elif isinstance(value, list):
+            if len(value) == 0:
+                return None
+
+            return f'\t{parm} = {" ".join(value)}\n'
         else:
             return f'\t{parm} = {value}\n'
 
@@ -297,31 +313,35 @@ class KRB5Conf():
         for parm, value in self.libdefaults.items():
             kconf += self.__dump_a_parameter(parm, value)
 
-        return f'{kconf}\n'
+        return kconf + '\n'
 
     def __generate_appdefaults(self):
         kconf = "[appdefaults]\n"
         for parm, value in self.appdefaults.items():
             kconf += self.__dump_a_parameter(parm, value)
 
-        return f'{kconf}\n'
+        return kconf + '\n'
 
     def __generate_realms(self):
         kconf = '[realms]\n'
         for realm in list(self.realms.keys()):
-            kconf += self.__dump_a_parameter(realm, realms[realm])
+            this_realm = self.realms[realm].copy()
+            this_realm.pop('realm')
+            kconf += self.__dump_a_parameter(
+                realm, {'default_domain': realm} | this_realm
+            )
 
-        return kconf
+        return kconf + '\n'
 
     def __generate_domain_realms(self):
         kconf = '[domain_realms]\n'
-        for realm in self.realm.keys():
-            kconf += f'{realm.lower()} = {realm}\n'
-            kconf += f'.{realm.lower()} = {realm}\n'
-            kconf += f'{realm.upper()} = {realm}\n'
-            kconf += f'.{realm.upper()} = {realm}\n'
+        for realm in self.realms.keys():
+            kconf += f'\t{realm.lower()} = {realm}\n'
+            kconf += f'\t.{realm.lower()} = {realm}\n'
+            kconf += f'\t{realm.upper()} = {realm}\n'
+            kconf += f'\t.{realm.upper()} = {realm}\n'
 
-        return kconf
+        return kconf + '\n'
 
     def generate(self):
         """

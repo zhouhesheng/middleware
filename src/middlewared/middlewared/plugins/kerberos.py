@@ -100,21 +100,21 @@ class KerberosService(ConfigService):
 
         krbconf = KRB5Conf()
         libdefaults = {
-            KRB_LibDefaults.DEFAULT_REALM: realm,
-            KRB_LibDefaults.DNS_LOOKUP_REALM: 'false',
-            KRB_LibDefaults.DEFAULT_CC_NAME: f'FILE:{krb5ccache.SYSTEM.value}'
+            str(KRB_LibDefaults.DEFAULT_REALM): realm,
+            str(KRB_LibDefaults.DNS_LOOKUP_REALM): 'false',
+            str(KRB_LibDefaults.DEFAULT_CCACHE_NAME): f'FILE:{krb5ccache.SYSTEM.value}'
         }
 
         realms = [{
             'realm': realm,
             'admin_server': [],
-            'kdc': []
+            'kdc': [],
             'kpasswd_server': []
         }]
 
         if kdc:
             realms[0]['kdc'].append(kdc)
-            libdefaults[KRB_LibDefaults.DNS_LOOKUP_KDC]: 'false'
+            libdefaults[str(KRB_LibDefaults.DNS_LOOKUP_KDC)] = 'false'
 
         krbconf.add_libdefaults(libdefaults)
         krbconf.add_realms(realms)
