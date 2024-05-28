@@ -130,7 +130,7 @@ class KerberosService(ConfigService):
         ),
         Bool('raise_error', default=True)
     )
-    async def check_ticket(self):
+    async def check_ticket(self, data, raise_error):
         ccache_path = await self.ccache_path(data)
 
         klist = await run(['klist', '-s', '-c', ccache_path], check=False)

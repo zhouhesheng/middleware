@@ -76,7 +76,7 @@ def validate_krb5_parameter(section, param, value):
                 raise ValueError('enctypes should be space-delimited list')
 
             for enctype in value.split():
-                if enctype not in SUPPORTED_ETYPES:
+                if enctype.strip() not in SUPPORTED_ETYPES:
                     raise ValueError(f'{enctype}: unsupported enctype specified for parameter {param}')
         case 'time':
             if isinstance(value, str):
