@@ -12,7 +12,7 @@ from middlewared.schema import accepts, returns, Dict, Int, List, Patch, Str, OR
 from middlewared.service import CallError, ConfigService, CRUDService, job, periodic, private, ValidationErrors
 import middlewared.sqlalchemy as sa
 from middlewared.utils import filter_list, run
-from middlewared.utils.directoryservices.constants import (
+from middlewared.utils.directoryservices.krb5_constants import (
     KRB_Keytab,
     krb5ccache,
     krb_tkt_flag,
@@ -27,6 +27,7 @@ from middlewared.utils.directoryservices.krb5 import (
     klist_impl,
     ktutil_list_impl
 )
+from middlewared.utils.directoryservices.krb5_conf import KRB5Conf
 
 
 class KerberosModel(sa.Model):
@@ -97,30 +98,27 @@ class KerberosService(ConfigService):
         if os.path.exists('/etc/krb5.conf'):
             return
 
-        def write_libdefaults(krb_file):
-            dflt_realm = KRB_LibDefaults.DEFAULT_REALM.parm()
-            dnslookup_realm = KRB_LibDefaults.DNS_LOOKUP_REALM.parm()
-            dnslookup_kdc = KRB_LibDefaults.DNS_LOOKUP_KDC.parm()
-            ccache_dir = KRB_LibDefaults.DEFAULT_CC_NAME.parm()
+        krbconf = KRB5Conf()
+        libdefaults = {
+            KRB_LibDefaults.DEFAULT_REALM: realm,
+            KRB_LibDefaults.DNS_LOOKUP_REALM: 'false',
+            KRB_LibDefaults.DEFAULT_CC_NAME: f'FILE:{krb5ccache.SYSTEM.value}'
+        }
 
-            krb_file.write('[libdefaults]\n')
-            krb_file.write(f'\t{dflt_realm} = {realm}\n')
-            krb_file.write(f'\t{dnslookup_realm} = false\n')
-            krb_file.write(f'\t{dnslookup_kdc} = {"false" if kdc else "true"}\n')
-            krb_file.write(f'\t{ccache_dir} = FILE:{krb5ccache.SYSTEM.value}\n')
+        realms = [{
+            'realm': realm,
+            'admin_server': [],
+            'kdc': []
+            'kpasswd_server': []
+        }]
 
-        def write_realms(krb_file):
-            krb_file.write('[realms]\n')
-            krb_file.write(f'\t{realm} =' + '{\n')
-            if kdc:
-                krb_file.write(f'\t\tkdc = {kdc}\n')
-            krb_file.write('\t}\n')
+        if kdc:
+            realms[0]['kdc'].append(kdc)
+            libdefaults[KRB_LibDefaults.DNS_LOOKUP_KDC]: 'false'
 
-        with open('/etc/krb5.conf', 'w') as f:
-            write_libdefaults(f)
-            write_realms(f)
-            f.flush()
-            os.fsync(f.fileno())
+        krbconf.add_libdefaults(libdefaults)
+        krbconf.add_realms(realms)
+        krbconf.write()
 
     @private
     @accepts(

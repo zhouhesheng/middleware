@@ -103,10 +103,16 @@ class EtcService(Service):
             {'type': 'mako', 'path': 'fstab'},
             {'type': 'py', 'path': 'fstab_configure', 'checkpoint': 'post_init'}
         ],
-        'kerberos': [
-            {'type': 'mako', 'path': 'krb5.conf'},
+        'kerberos': {
+            'ctx': [
+                {'method': 'activedirectory.config'},
+                {'method': 'ldap.config'},
+                {'method': 'kerberos.config'},
+                {'method': 'kerberos.realm.query'}
+            ],
+            {'type': 'py', 'path': 'krb5.conf', 'mode': 0o644},
             {'type': 'py', 'path': 'krb5.keytab', 'mode': 0o600},
-        ],
+        },
         'cron': [
             {'type': 'mako', 'path': 'cron.d/middlewared', 'checkpoint': 'pool_import'},
         ],

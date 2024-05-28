@@ -11,7 +11,7 @@ import os
 import subprocess
 import time
 
-from .constants import krb_tkt_flag, KRB_ETYPE
+from .krb5_constants import krb_tkt_flag, KRB_ETYPE
 from middlewared.utils import filter_list
 from tempfile import NamedTemporaryFile
 
