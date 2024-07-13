@@ -2,7 +2,7 @@
 #
 # Licensed under the terms of the TrueNAS Enterprise License Agreement
 # See the file LICENSE.IX for complete terms and conditions
-
+import dataclasses
 import logging
 
 from middlewared.utils.scsi_generic import inquiry
@@ -17,6 +17,7 @@ from .constants import (
     DISK_REAR_KEY,
     DISK_TOP_KEY,
     DISK_INTERNAL_KEY,
+    MODELS,
 )
 from .element_types import ELEMENT_TYPES, ELEMENT_DESC
 from .enums import ControllerModels, ElementDescriptorsToIgnore, ElementStatusesToIgnore, JbodModels
@@ -24,6 +25,17 @@ from .sysfs_disks import map_disks_to_enclosure_slots
 from .slot_mappings import get_slot_info
 
 logger = logging.getLogger(__name__)
+
+
+@dataclasses.dataclass(kw_only=True, slots=True)
+class EnclosureDC:
+    bsg: str | None = None
+    """The block SCSI generic character device (/dev/bsg/0:0:0:0)"""
+    sg: str | None = None
+    """The SCSI generic character device (/dev/sg0)"""
+    dmi_spn: str | None = None
+    """The system buffer from DMI (desktop management interface). More specifically,
+    the product name."""
 
 
 class Enclosure:

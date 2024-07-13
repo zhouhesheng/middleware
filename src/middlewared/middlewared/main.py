@@ -200,7 +200,7 @@ class Application:
             methodobj = mock
 
         try:
-            async with self._softhardsemaphore:
+            async with self._softhardsemaphore(message['method']):
                 result = await self.middleware.call_with_audit(message['method'], serviceobj, methodobj, params, self)
             if isinstance(result, Job):
                 result = result.id
@@ -219,6 +219,7 @@ class Application:
                 errno.ETOOMANYREFS,
                 f'Maximum number of concurrent calls ({e.args[0]}) has exceeded.',
             )
+            self.logger.debug('Queued messages: %r', self._softhardsemaphore.get_queued())
         except ValidationError as e:
             self.send_error(message, e.errno, str(e), sys.exc_info(), etype='VALIDATION', extra=[
                 (e.attribute, e.errmsg, e.errno),
