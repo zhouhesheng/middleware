@@ -2,7 +2,7 @@
 #
 # Licensed under the terms of the TrueNAS Enterprise License Agreement
 # See the file LICENSE.IX for complete terms and conditions
-
+import functools
 import logging
 
 from middlewared.utils.scsi_generic import inquiry
@@ -17,6 +17,7 @@ from .constants import (
     DISK_REAR_KEY,
     DISK_TOP_KEY,
     DISK_INTERNAL_KEY,
+    MODELS,
 )
 from .element_types import ELEMENT_TYPES, ELEMENT_DESC
 from .enums import ControllerModels, ElementDescriptorsToIgnore, ElementStatusesToIgnore, JbodModels
@@ -27,14 +28,23 @@ logger = logging.getLogger(__name__)
 
 
 class Enclosure:
-    def __init__(self, bsg, sg, dmi, enc_stat):
-        self.bsg, self.sg, self.pci, self.dmi = bsg, sg, bsg.removeprefix('/dev/bsg/'), dmi
+    def __init__(self, bsg, sg, dmi_spn):
+        self.bsg = bsg
+        self.sg = sg
+        self.dmi = dmi_spn
+        self.controller = self.__determine_controller()
+        # enc_stat, nvme_only=False):
+        self._initialize(bsg, sg, dmi)
+        self._get_vendor_product_revision_and_encname(nvme_only)
         self.encid, self.status = enc_stat['id'], list(enc_stat['status'])
-        self.vendor, self.product, self.revision, self.encname = self._get_vendor_product_revision_and_encname()
         self._get_model_and_controller()
         self._should_ignore_enclosure()
         self.sysfs_map, self.disks_map, self.elements = dict(), dict(), dict()
-        if not self.should_ignore:
+        if nvme_only:
+            # nvme only system which means the data has already been
+            # normalized into what we expect
+            self.elements = enc_stat['elements']
+        elif not self.should_ignore:
             self.sysfs_map = map_disks_to_enclosure_slots(self.pci)
             self.disks_map = self._get_array_device_mapping_info()
             self.elements = self._parse_elements(enc_stat['elements'])
@@ -65,6 +75,146 @@ class Enclosure:
             'elements': self.elements  # dictionary with all element types and their relevant information
         }
 
+    @functools.cached_property
+    def __set_model_info(self):
+        self.__model_info = None
+        # first validate if the DMI information is valid
+        _model = self.dmi.removeprefix('TRUENAS-').removeprefix('FREENAS-')
+        _model = _model.removesuffix('-HA').removesuffix('-S')
+        try:
+            info = MODELS[_model]
+            if self.sg is not None:
+                # safe to assume this is a traditional SES platform and not
+                # an nvme only or JBoF platform
+                inq = inquiry(self.sg)
+                if f'{inq["vendor"]}_{inq["product"]}' in info.expected_t10:
+                    self.__info = info
+                    return
+                else:
+                    self.__model = info.model
+        except KeyError:
+            # okay, this could be a JBoD/F device so we'll
+            # check a different way
+            pass
+
+        try:
+            
+        pass
+
+    @property
+    def controller(self):
+        if self.__model_info is not None:
+            return self.__model_info.controller
+
+    def model(self):
+        """This determines the model of the enclosure. The hingepoint of determining
+        the model is based on SMBIOS DMI information. Specifically, the system
+        product name string. For iX branded hardware, this is burned into the unit
+        before we ship to customer."""
+        return self.__model
+        _model = self.dmi.removeprefix('TRUENAS-').removeprefix('FREENAS-')
+        _model = _model.removesuffix('-HA').removesuffix('-S')
+        if _model in MODELS:
+            return _model
+        else:
+            logger.warning('Unexpected model: %r from dmi: %r', _model, self.dmi)
+            return None
+
+    @functools.cached_property
+    def model_info(self):
+        return MODELS.get(self.model)
+
+    @functools.cached_property
+    def controller(self):
+        """This determines if this is a "controller". The term "controller" refers
+        to the enclosure device where the TrueNAS OS is installed (aka "head-unit")
+
+        The way we determine if this is a controller is a bit involved.
+            1. if `self.model` was determined properly
+                -- if this is a traditional SCSI SES device, we send a standard
+                scsi inquiry to the SCSI generic character device (i.e. /dev/sg0)
+                and we check the t10 vendor, product and revision strings returned
+                from said inquiry command to make sure it lines up with what we expect
+                -- if this is a JBoF OR a NVME only system, then we short-circuit
+                this information and fill it in manually because it's not a
+                traditional SCSI SES device and so we don't have a SCSI Generic
+                character device to send the command
+            2. if we can't determine `self.model` then nothing else matters and we
+                don't try to do anything else"""
+        if self.model is not None:
+            # the DMI information was flashed properly
+            if self.sg is not None:
+                # we were given a SCSI generic character device so safe to assume
+                # this is a "traditional" SES device
+                data = inquiry(self.sg)
+                t10 = f'{data["vendor"]}_{data["product"]}'
+                if t10 in self.model_info.expected_t10:
+
+                    case 'ECStream_4024Sp' | 'ECStream_4024Ss' | 'iX_4024Sp' | 'iX_4024Ss':
+                        # M series
+                        self.controller = True
+                    case 'CELESTIC_P3215-O' | 'CELESTIC_P3217-B':
+                        # X series
+                        self.controller = True
+                    case 'BROADCOM_VirtualSES':
+                        # H series
+                        self.controller = True
+                    case 'ECStream_FS1' | 'ECStream_FS2' | 'ECStream_DSS212Sp' | 'ECStream_DSS212Ss':
+                        # R series
+                        self.controller = True
+                    case 'iX_FS1L' | 'iX_FS2' | 'iX_DSS212Sp' | 'iX_DSS212Ss':
+                        # more R series
+                        self.controller = True
+                    case 'iX_TrueNASR20p' | 'iX_2012Sp' | 'iX_TrueNASSMCSC826-P':
+                        # R20
+                        self.controller = True
+                    case 'AHCI_SGPIOEnclosure':
+                        # R20 variants or MINIs
+                        self.controller = True
+                    case 'iX_eDrawer4048S1' | 'iX_eDrawer4048S2':
+                        # R50
+                        self.controller = True
+                    case 'CELESTIC_X2012' | 'CELESTIC_X2012-MT':
+                        self.model = JbodModels.ES12.value
+                        self.controller = False
+                    case 'ECStream_4024J' | 'iX_4024J':
+                        self.model = JbodModels.ES24.value
+                        self.controller = False
+                    case 'ECStream_2024Jp' | 'ECStream_2024Js' | 'iX_2024Jp' | 'iX_2024Js':
+                        self.model = JbodModels.ES24F.value
+                        self.controller = False
+                    case 'CELESTIC_R0904-F0001-01':
+                        self.model = JbodModels.ES60.value
+                        self.controller = False
+                    case 'HGST_H4060-J':
+                        self.model = JbodModels.ES60G2.value
+                        self.controller = False
+                    case 'HGST_H4102-J':
+                        self.model = JbodModels.ES102.value
+                        self.controller = False
+                    case 'VikingES_NDS-41022-BB' | 'VikingES_VDS-41022-BB':
+                        self.model = JbodModels.ES102G2.value
+                        self.controller = False
+                    case _:
+                        logger.warning(
+                            'Unexpected t10 vendor: %r and product: %r combination',
+                            self.vendor, self.product
+                        )
+                        self.model = ''
+                        self.controller = False
+
+        pass
+
+    def _initialize(self, bsg, sg, dmi):
+        self.dmi = dmi
+        if nvme_only:
+            # If this is an NVMe only platform (or a JBoF) then the traditional
+            # assumptions (SCSI/SES) don't apply. Furthermore, the data that is
+            # being passed to us has already been normalized for us
+            self.bsg = self.sg = self.pci = None
+        else:
+            self.bsg, self.sg, self.pci = bsg, sg, bsg.removeprefix('/dev/bsg/')
+
     def _should_ignore_enclosure(self):
         if not self.model:
             # being unable to determine the model means many other things will not work
@@ -94,17 +244,21 @@ class Enclosure:
             self.should_ignore = False
 
     def _get_vendor_product_revision_and_encname(self):
-        """Sends a standard INQUIRY command to the enclosure device
-        so we can parse the vendor/prodcut/revision(and /serial if we ever wanted
-        to use that information) for the enclosure device. It's important
-        that we parse this information into their own top-level keys since we
-        base some of our drive mappings (potentially) on the "revision" (aka firmware)
-        for the enclosure
+        """If this is a traditional SCSI/SES enclosure, it sends a standard INQUIRY
+        command to the SCSI generic device so we can parse the vendor/product/revision
+        (and /serial if we ever wanted to use that information) for the enclosure
+        device. It's important that we parse this information into their own
+        top-level keys since we base some of our drive mappings (potentially) on the
+        "revision" (aka firmware) for the enclosure
         """
-        inq = inquiry(self.sg)
-        data = [inq['vendor'], inq['product'], inq['revision']]
-        data.append(' '.join(data))
-        return data
+        if self.sg is None:
+            self.vendor = self.product = self.revision = self.encname = None
+        else:
+            inq = inquiry(self.sg)
+            self.vendor = inq['vendor']
+            self.product = inq['product']
+            self.revision = inq['revision']
+            self.encname = ' '.join([self.vendor, self.product, self.revision])
 
     def _get_model_and_controller(self):
         """This determines the model and whether or not this a controller enclosure.
@@ -116,27 +270,6 @@ class Enclosure:
         2. We check the t10 vendor and product strings returned from the enclosure
             using a standard inquiry command
         """
-        model = self.dmi.removeprefix('TRUENAS-').removeprefix('FREENAS-')
-        model = model.removesuffix('-HA').removesuffix('-S')
-        try:
-            dmi_model = ControllerModels[model]
-        except KeyError:
-            try:
-                # the member names of this enum just so happen to line
-                # up with the string we get from DMI, however, the MINIs
-                # get flashed with strings that have invalid characters
-                # for members of an enum. If we get here, then we change
-                # to using the parenthesis approach because that matches
-                # an entry in the enum by value
-                dmi_model = ControllerModels(model)
-            except ValueError:
-                # this shouldn't ever happen because the instantiator of this class
-                # checks DMI before we even get here but better safe than sorry
-                logger.warning('Unexpected model: %r from dmi: %r', model, self.dmi)
-                self.model = ''
-                self.controller = False
-                return
-
         t10vendor_product = f'{self.vendor}_{self.product}'
         match t10vendor_product:
             case 'ECStream_4024Sp' | 'ECStream_4024Ss' | 'iX_4024Sp' | 'iX_4024Ss':
@@ -321,14 +454,6 @@ class Enclosure:
             final[element_type[0]].update({mapped_slot: parsed})
 
         return final
-
-    @property
-    def model(self):
-        return self.__model
-
-    @model.setter
-    def model(self, val):
-        self.__model = val
 
     @property
     def controller(self):
