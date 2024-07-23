@@ -45,8 +45,10 @@ class RealtimeEventSource(EventSource):
         Dict('virtual_memory', additional_attrs=True),
         Dict(
             'zfs',
+            Int('arc_min_size'),
             Int('arc_max_size'),
             Int('arc_size'),
+            Int('arc_metadata_size'),
             Float('cache_hit_ratio'),
         ),
     )
@@ -74,7 +76,7 @@ class RealtimeEventSource(EventSource):
                 data = {'failed_to_connect': failed_to_connect}
             else:
                 data = {
-                    'zfs': get_arc_stats(netdata_metrics),  # ZFS ARC Size
+                    'zfs': get_arc_stats(),
                     'memory': get_memory_info(netdata_metrics),
                     'virtual_memory': psutil.virtual_memory()._asdict(),
                     'cpu': get_cpu_stats(netdata_metrics, cores),
