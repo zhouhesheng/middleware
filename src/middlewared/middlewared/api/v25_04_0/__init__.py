@@ -4,3 +4,4 @@ from .common import *  # noqa
 from .core import *  # noqa
 from .user import *  # noqa
 from .vendor import *  # noqa
+from .virt import *  #noqa
