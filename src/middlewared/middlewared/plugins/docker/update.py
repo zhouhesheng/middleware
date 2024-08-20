@@ -60,10 +60,11 @@ class DockerService(ConfigService):
         if old_config != config:
             if config['pool'] != old_config['pool']:
                 job.set_progress(20, 'Stopping Docker service')
-                try:
-                    await self.middleware.call('service.stop', 'docker')
-                except Exception as e:
-                    raise CallError(f'Failed to stop docker service: {e}')
+                if await self.middleware.call('service.started', 'docker'):
+                    try:
+                        await self.middleware.call('service.stop', 'docker')
+                    except Exception as e:
+                        raise CallError(f'Failed to stop docker service: {e}')
 
                 await self.middleware.call('docker.state.set_status', Status.UNCONFIGURED.value)
 
