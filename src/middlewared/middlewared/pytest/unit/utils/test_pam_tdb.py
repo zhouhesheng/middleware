@@ -15,11 +15,11 @@ LEGACY_ENTRY_KEY = 'rtpz6u16l42XJJGy5KMJOVfkiQH7CyitaoplXy7TqFTmY7zHqaPXuA1ob07B
 LEGACY_ENTRY_HASH = '$pbkdf2-sha256$29000$CyGktHYOwXgvBYDQOqc05g$nK1MMvVuPGHMvUENyR01qNsaZjgGmlt3k08CRuC4aTI'
 PAM_DIR = '/etc/pam.d'
 PAM_FILE = 'middleware-api-key'
-PAM_AUTH_LINE = 'auth  [success=1 default=ignore]      pam_tdb.so debug '
+PAM_AUTH_LINE = 'auth  [success=1 default=die]      pam_tdb.so debug '
 PAM_FAIL_DELAY = 2  # This is minimum that pam_tdb will delay failed auth attempts
 
 PAM_FILE_REMAINING_CONTENTS = """
-#@include common-auth-unix
+@include common-auth-unix
 @include common-account
 password        required        pam_deny.so
 session required        pam_deny.so
