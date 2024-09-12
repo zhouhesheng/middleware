@@ -24,6 +24,7 @@ PAM_TDB_OPTIONS = TDBOptions(TDBPathType.CUSTOM, TDBDataType.BYTES)
 @dataclass(frozen=True)
 class UserApiKey:
     expiry: int
+    id: int
     userhash: str
 
 
@@ -48,7 +49,7 @@ def _pack_user_auth_key(api_key: UserApiKey) -> bytes:
         raise TypeError(f'{type(api_key)}: not a UserAuthToken')
 
     userhash = api_key.userhash.encode() + b'\x00'
-    return pack(f'<q{len(userhash)}p', api_key.expiry, userhash)
+    return pack(f'<qI{len(userhash)}p', api_key.expiry, api_key.id, userhash)
 
 
 def write_entry(hdl: TDBHandle, entry: PamTdbEntry) -> None:
