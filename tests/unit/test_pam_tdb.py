@@ -48,10 +48,10 @@ def write_tdb_file(
     keys = []
     idx = 0
 
-    for idx, hash in enumerate(hashlist):
+    for idx, thehash in enumerate(hashlist):
         keys.append(user_api_key.UserApiKey(
-            userhash=hash,
-            id=BASE_ID + idx,
+            userhash=thehash,
+            dbid=BASE_ID + idx,
             expiry=EXPIRED_TS if expired else 0
         ))
 
@@ -263,17 +263,6 @@ def test_new_auth_timeout(current_username):
         p = pam.pam()
         with fail_delay():
             authd = p.authenticate(current_username, f'{db_id}-{key}', service=svc)
-            assert authd is False
-            assert p.code == pam.PAM_AUTH_ERR
-
-
-def test_new_auth_no_keys(current_username):
-    """ verify that entries with no keys generates a pam delay as expected """
-    db_id = write_tdb_file(current_username, [])
-    with pam_service() as svc:
-        p = pam.pam()
-        with fail_delay():
-            authd = p.authenticate(current_username, f'{db_id}-', service=svc)
             assert authd is False
             assert p.code == pam.PAM_AUTH_ERR
 

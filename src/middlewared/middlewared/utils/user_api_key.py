@@ -16,7 +16,7 @@ PAM_TDB_DIR = '/var/run/pam_tdb'
 PAM_TDB_FILE = os.path.join(PAM_TDB_DIR, 'pam_tdb.tdb')
 PAM_TDB_DIR_MODE = 0o700
 PAM_TDB_VERSION = 1
-PAM_TDB_MAX_KEYS = 10  # Max number of keys per user
+PAM_TDB_MAX_KEYS = 10  # Max number of keys per user. Also defined in pam_tdb.c
 
 PAM_TDB_OPTIONS = TDBOptions(TDBPathType.CUSTOM, TDBDataType.BYTES)
 
@@ -24,7 +24,7 @@ PAM_TDB_OPTIONS = TDBOptions(TDBPathType.CUSTOM, TDBDataType.BYTES)
 @dataclass(frozen=True)
 class UserApiKey:
     expiry: int
-    id: int
+    dbid: int
     userhash: str
 
 
@@ -39,14 +39,14 @@ def _setup_pam_tdb_dir() -> None:
     os.chmod(PAM_TDB_DIR, PAM_TDB_DIR_MODE)
 
 
-def _pack_user_auth_key(api_key: UserApiKey) -> bytes:
+def _pack_user_api_key(api_key: UserApiKey) -> bytes:
     """
-    Convert UserAuthToken to bytes for TDB insertion.
+    Convert UserApiKey object to bytes for TDB insertion.
     This is packed struct with expiry converted into signed 64 bit
-    integer, and the userhash converted into a pascal string.
+    integer, the database id (32-bit unsigned), and the userhash (pascal string).
     """
     if not isinstance(api_key, UserApiKey):
-        raise TypeError(f'{type(api_key)}: not a UserAuthToken')
+        raise TypeError(f'{type(api_key)}: not a UserApiKey')
 
     userhash = api_key.userhash.encode() + b'\x00'
     return pack(f'<qI{len(userhash)}p', api_key.expiry, api_key.id, userhash)
@@ -61,7 +61,7 @@ def write_entry(hdl: TDBHandle, entry: PamTdbEntry) -> None:
     value: uint32_t (version) + uint32_t (cnt of keys)
     """
     if not isinstance(entry, PamTdbEntry):
-        raise TypeError(f'{type(entry)}: expected UserAuthToken')
+        raise TypeError(f'{type(entry)}: expected PamTdbEntry')
 
     key_cnt = len(entry.keys)
     if key_cnt > PAM_TDB_MAX_KEYS:
@@ -70,7 +70,7 @@ def write_entry(hdl: TDBHandle, entry: PamTdbEntry) -> None:
     entry_bytes = pack('<II', PAM_TDB_VERSION, len(entry.keys))
     parsed_cnt = 0
     for key in entry.keys:
-        entry_bytes += _pack_user_auth_key(key)
+        entry_bytes += _pack_user_api_key(key)
         parsed_cnt += 1
 
     # since we've already packed struct with array length
