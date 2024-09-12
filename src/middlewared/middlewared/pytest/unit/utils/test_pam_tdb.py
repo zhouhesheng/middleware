@@ -116,8 +116,7 @@ def pam_service(
     try:
         yield file_name
     finally:
-        #os.remove(pam_service_path)
-        pass
+        os.remove(pam_service_path)
 
 
 @contextmanager
@@ -159,13 +158,14 @@ def test_legacy_auth_admin(current_username):
         assert p.code == pam.PAM_SUCCESS
 
         with fail_delay():
+            # attempt to authenticate with invalid key should trigger a fail delay
             authd = p.authenticate(current_username, f'{db_id}-{LEGACY_ENTRY_KEY[0:-1]}', service=svc)
             assert authd is False
             assert p.code == pam.PAM_AUTH_ERR
 
 
 def test_legacy_auth_admin_expired_key(current_username):
-    """ This should succeed for specified admin user """
+    """ Verify that an expired key results in PAM_AUTH_ERR """
     db_id = write_tdb_file(current_username, [LEGACY_ENTRY_HASH], True)
     with pam_service(admin_user=current_username) as svc:
         p = pam.pam()
@@ -175,7 +175,9 @@ def test_legacy_auth_admin_expired_key(current_username):
 
 
 def test_legacy_auth_non_admin(current_username):
-    """ Test that legacy hash doesn't work for non-admin user """
+    """ Test that legacy hash doesn't work for non-admin user
+    We really want to deprecate these legacy keys.
+    """
     write_tdb_file(current_username, [LEGACY_ENTRY_HASH])
     with pam_service() as svc:
         with fail_delay():
@@ -186,7 +188,10 @@ def test_legacy_auth_non_admin(current_username):
 
 
 def test_legacy_auth_multiple_entries(current_username):
-    """ verify last entry in hash list can be used to auth """
+    """ verify last entry in hash list can be used to auth
+    We allow multiple keys per user. Ensure that we can use more than the
+    first key.
+    """
     hashes = [crypto.generate_pbkdf2_512('canary') for i in range(0, 5)]
     hashes.append(LEGACY_ENTRY_HASH)
 
@@ -217,6 +222,7 @@ def test_new_auth(current_username):
             assert p.code == pam.PAM_AUTH_ERR
 
 def test_new_auth_truncated_password(current_username):
+    """ Verify that truncated password generates auth error """
     key = crypto.generate_string(string_size=64)
     db_id = write_tdb_file(current_username, [crypto.generate_pbkdf2_512(key)])
 
@@ -292,6 +298,7 @@ def test_unsupported_service_file_name(current_username):
      MISSING_HASH,
 ])
 def test_invalid_hash(current_username, thehash):
+    """ Check that variations of broken hash entries generate PAM_AUTH_ERR """
     db_id = write_tdb_file(current_username, [thehash])
     with pam_service(admin_user=current_username) as svc:
         p = pam.pam()
