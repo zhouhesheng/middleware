@@ -4,11 +4,11 @@ from middlewared.plugins.smb import SMBCmd, SMBHAMODE
 from middlewared.plugins.smb_.smbconf.reg_service import ShareSchema
 from .utils import smb_strip_comments
 from .util_net_conf import (
-        reg_setparm,
-        reg_delparm,
-        reg_addshare,
-        reg_listshares,
-        reg_showshare,
+    reg_setparm,
+    reg_delparm,
+    reg_addshare,
+    reg_listshares,
+    reg_showshare,
 )
 
 import errno
@@ -19,7 +19,6 @@ CONF_JSON_VERSION = {"major": 0, "minor": 1}
 
 
 class SharingSMBService(Service):
-
     class Config:
         namespace = 'sharing.smb'
 
@@ -124,7 +123,8 @@ class SharingSMBService(Service):
         data = conf_in.copy()
         gl = self.get_global_params(globalconf)
         data['auxsmbconf'] = smb_strip_comments(data['auxsmbconf'])
-        conf = {}
+        conf = {'create mask': {'parsed': '0775'}, 'force user': {'parsed': 'smbuser'},
+                'force group': {'parsed': 'smbuser'}}
 
         if not data['path_suffix'] and data['home']:
             """
