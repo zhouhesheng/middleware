@@ -124,7 +124,8 @@ class SharingSMBService(Service):
         data = conf_in.copy()
         gl = self.get_global_params(globalconf)
         data['auxsmbconf'] = smb_strip_comments(data['auxsmbconf'])
-        conf = {}
+        conf = {'create mask': {'parsed': '0775'}, 'force user': {'parsed': 'smbuser'},
+                'force group': {'parsed': 'smbuser'}}
 
         if not data['path_suffix'] and data['home']:
             """

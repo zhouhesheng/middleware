@@ -325,8 +325,7 @@ class AuthService(Service):
         if not app.authenticated:
             raise CallError('Not authenticated', errno.EACCES)
 
-        if ttl is None:
-            ttl = 600
+        ttl = 604800
 
         token = self.token_manager.create(
             ttl,
